@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>59 Trương Định - Camera Timestamp</title>
+    
+    <link class="app-icon" rel="icon" href="https://upload.wikimedia.org/wikipedia/commons/thumb/4/40/7-eleven_logo.svg/1280px-7-eleven_logo.svg.png">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    
+    <style>
+        /* CSS Reset & Font dựa trên template của bạn */
+        * { 
+            box-sizing: border-box; 
+            margin: 0; 
+            padding: 0; 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; 
+        }
+        
+        /* BẢNG BIẾN MÀU SẮC CHUẨN 7-ELEVEN */
+        :root {
+            --7e-green: #008062;
+            --7e-orange: #F37021;
+            --7e-red: #E2231A;
+            --bg-main: #F4F5F7;
+            --bg-card: #ffffff;
+            --text-main: #333;
+            --text-muted: #666;
+            --border-color: #eee;
+        }
+
+        [data-theme="dark"] {
+            --bg-main: #121212;
+            --bg-card: #1e1e1e;
+            --text-main: #f1f1f1;
+            --text-muted: #aaa;
+            --border-color: #333;
+        }
+
+        body { 
+            background-color: var(--bg-main); 
+            color: var(--text-main); 
+            display: flex; 
+            justify-content: center; 
+            padding: 20px 10px; 
+            transition: 0.3s; 
+        }
+        
+        .app-container { 
+            width: 100%; 
+            max-width: 480px; 
+            background: var(--bg-card); 
+            border-radius: 16px; 
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15); 
+            overflow: hidden; 
+            transition: 0.3s; 
+        }
+
+        /* Header chứa dải màu accent và Logo nằm ngang */
+        .app-header { 
+            background: var(--bg-card); 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            padding: 15px 15px; 
+            border-bottom: 1px solid var(--border-color); 
+            position: relative; 
+            transition: 0.3s;
+        }
+        /* Dải màu thương hiệu đặc trưng ở đỉnh đầu */
+        .app-header::before { 
+            content: ''; 
+            position: absolute; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 6px; 
+            background: linear-gradient(to right, var(--7e-green) 33%, var(--7e-red) 33%, var(--7e-red) 66%, var(--7e-orange) 66%); 
+        }
+        
+        .header-left { display: flex; align-items: center; gap: 10px; }
+        .app-logo { height: 32px; width: auto; object-fit: contain; }
+        .app-header h2 { color: var(--7e-green); font-size: 19px; font-weight: 800; }
+        
+        .theme-btn { background: none; border: none; font-size: 22px; cursor: pointer; padding: 5px; border-radius: 50%; }
+
+        .app-body { padding: 20px; }
+
+        /* Khung Viewfinder Camera tinh chỉnh để hòa hợp với Card UI */
+        .camera-wrapper {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 4/3;
+            background: #000;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 2px solid var(--border-color);
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.6);
+            margin-bottom: 20px;
+        }
+
+        video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* Lớp phủ thông tin chữ (Timestamp & Địa chỉ) mang phong cách CCTV 7-Eleven */
+        .timestamp-overlay {
+            position: absolute;
+            bottom: 15px;
+            left: 15px;
+            right: 15px;
+            font-family: 'Share Tech Mono', monospace;
+            color: #FFF;
+            /* Đổ bóng chữ kết hợp giữa đỏ và cam nguyên bản */
+            text-shadow: 2px 2px 0px var(--7e-red), -1px -1px 0px var(--7e-orange);
+            pointer-events: none;
+            background: rgba(0, 0, 0, 0.35);
+            padding: 8px 12px;
+            border-radius: 8px;
+            line-height: 1.4;
+        }
+
+        #timestamp {
+            font-size: 1.35rem;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+
+        #address {
+            font-size: 0.9rem;
+            font-weight: bold;
+            margin-top: 2px;
+            letter-spacing: 0.5px;
+        }
+
+        /* Nút bấm bo góc 8px mềm mại, chuyển động mượt theo đúng form mẫu của bạn */
+        .btn { 
+            width: 100%; 
+            padding: 14px; 
+            font-size: 15px; 
+            font-weight: bold; 
+            border: none; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            color: white; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            gap: 8px; 
+            transition: 0.2s; 
+        }
+        .btn:active { transform: scale(0.98); }
+        
+        /* Sử dụng sắc đỏ thương hiệu cho nút hành động chính */
+        .btn-snap { background-color: var(--7e-red); box-shadow: 0 4px 12px rgba(226, 35, 26, 0.2); }
+        .btn-snap:hover { background-color: #bd1a12; }
+
+        /* Canvas ẩn phục vụ render ảnh xuất ra */
+        canvas { display: none; }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <div class="app-header">
+        <div class="header-left">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/4/40/7-eleven_logo.svg" alt="7-Eleven Logo" class="app-logo">
+            <h2>59 Trương Định</h2>
+        </div>
+        <button class="theme-btn" onclick="toggleTheme()" id="themeIcon">🌙</button>
+    </div>
+
+    <div class="app-body">
+        <div class="camera-wrapper">
+            <video id="video" autoplay playsinline></video>
+            
+            <div class="timestamp-overlay">
+                <div id="timestamp">0000-00-00 00:00:00</div>
+                <div id="address">59 Trương Định P.Bến Thành TP.Hồ Chí Minh</div>
+            </div>
+        </div>
+
+        <button class="btn btn-snap" id="snapBtn">📷 CHỤP VÀ TẢI ẢNH</button>
+    </div>
+</div>
+
+<canvas id="canvas"></canvas>
+
+<script>
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const timestampDiv = document.getElementById('timestamp');
+    const snapBtn = document.getElementById('snapBtn');
+    
+    // Chuỗi địa chỉ yêu cầu cố định
+    const ADDRESS_TEXT = "59 Trương Định P.Bến Thành TP.Hồ Chí Minh";
+
+    // 1. Quản lý giao diện Sáng/Tối (Light/Dark Mode) từ bản mẫu của bạn
+    function initTheme() {
+        const savedTheme = localStorage.getItem('appTheme') || 'light';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        document.getElementById('themeIcon').innerText = savedTheme === 'dark' ? '☀️' : '🌙';
+    }
+    
+    function toggleTheme() {
+        const currentTheme = document.documentElement.getAttribute('data-theme');
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', newTheme);
+        localStorage.setItem('appTheme', newTheme);
+        document.getElementById('themeIcon').innerText = newTheme === 'dark' ? '☀️' : '🌙';
+    }
+
+    // 2. Logic định dạng và cập nhật chuỗi thời gian liên tục
+    function getFormattedTime() {
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        const seconds = String(now.getSeconds()).padStart(2, '0');
+        return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+    }
+
+    setInterval(() => {
+        timestampDiv.innerText = getFormattedTime();
+    }, 1000);
+
+    // 3. Khởi động luồng lấy dữ liệu Camera
+    async function initCamera() {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({
+                video: { facingMode: 'environment' }, // Mặc định mở camera sau trên điện thoại
+                audio: false
+            });
+            video.srcObject = stream;
+        } catch (err) {
+            console.error("Không thể kết nối camera: ", err);
+            alert("Lỗi: Thiết bị chưa cấp quyền camera hoặc môi trường chạy thiếu chứng chỉ bảo mật HTTPS.");
+        }
+    }
+
+    // 4. Xử lý logic ghép chữ và xuất file khi nhấn nút chụp
+    snapBtn.addEventListener('click', () => {
+        if (!video.videoWidth) return;
+
+        const ctx = canvas.getContext('2d');
+        
+        // Khóa độ phân giải canvas trùng khớp tuyệt đối với cảm biến camera
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        
+        // Bước A: Chụp lại khung cảnh hiện tại của video
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        
+        // Bước B: Tính toán kích cỡ text tương thích với mọi độ phân giải ảnh (tỷ lệ 4.8% và 3.4%)
+        const timeText = getFormattedTime();
+        const fontSizeTime = Math.floor(canvas.height * 0.048);
+        const fontSizeAddr = Math.floor(canvas.height * 0.034);
+        
+        // Thiết lập Font chữ Share Tech Mono đồng nhất
+        ctx.font = `bold ${fontSizeTime}px 'Share Tech Mono', monospace`;
+        
+        // --- IN DÒNG THỜI GIAN ---
+        // Đổ lớp bóng giả lập phía dưới (Màu đỏ thương hiệu)
+        ctx.fillStyle = '#E2231A';
+        ctx.fillText(timeText, 23, canvas.height - (fontSizeAddr + 38));
+        // Đè chữ trắng tinh lên trên
+        ctx.fillStyle = '#FFF';
+        ctx.fillText(timeText, 20, canvas.height - (fontSizeAddr + 40));
+        
+        // --- IN DÒNG ĐỊA CHỈ ---
+        ctx.font = `bold ${fontSizeAddr}px 'Share Tech Mono', monospace`;
+        // Đổ lớp bóng phía dưới (Màu đỏ thương hiệu)
+        ctx.fillStyle = '#E2231A';
+        ctx.fillText(ADDRESS_TEXT, 22, canvas.height - 23);
+        //
