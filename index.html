@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>59 Trương Định - Camera Timestamp</title>
+    <title>1167 Trương Định - Camera Timestamp</title>
     
     <link class="app-icon" rel="icon" href="https://upload.wikimedia.org/wikipedia/commons/thumb/4/40/7-eleven_logo.svg/1280px-7-eleven_logo.svg.png">
     
@@ -106,18 +106,15 @@
             object-fit: cover;
         }
 
-        /* Lớp phủ thông tin chữ (Timestamp & Địa chỉ) mang phong cách CCTV 7-Eleven */
+        /* Lớp phủ thông tin chữ thuần trắng thanh lịch */
         .timestamp-overlay {
             position: absolute;
             bottom: 15px;
             left: 15px;
-            right: 15px;
             font-family: 'Share Tech Mono', monospace;
-            color: #FFF;
-            /* Đổ bóng chữ kết hợp giữa đỏ và cam nguyên bản */
-            text-shadow: 2px 2px 0px var(--7e-red), -1px -1px 0px var(--7e-orange);
+            color: #FFF; /* Màu chữ thuần trắng */
             pointer-events: none;
-            background: rgba(0, 0, 0, 0.35);
+            background: rgba(0, 0, 0, 0.35); /* Nền mờ giúp giữ độ tương phản cao */
             padding: 8px 12px;
             border-radius: 8px;
             line-height: 1.4;
@@ -136,7 +133,21 @@
             letter-spacing: 0.5px;
         }
 
-        /* Nút bấm bo góc 8px mềm mại, chuyển động mượt theo đúng form mẫu của bạn */
+        /* CSS hiển thị Logo nhỏ đè bên góc phải khung ảnh */
+        .logo-overlay {
+            position: absolute;
+            bottom: 15px;
+            right: 15px;
+            height: 45px;
+            width: auto;
+            pointer-events: none;
+            background: rgba(255, 255, 255, 0.9); /* Thêm nền trắng nhẹ cho logo nổi bật */
+            padding: 4px;
+            border-radius: 6px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+
+        /* Nút bấm bo góc mềm mại, chuyển động mượt theo đúng form mẫu của bạn */
         .btn { 
             width: 100%; 
             padding: 14px; 
@@ -181,6 +192,8 @@
                 <div id="timestamp">0000-00-00 00:00:00</div>
                 <div id="address">59 Trương Định P.Bến Thành TP.Hồ Chí Minh</div>
             </div>
+
+            <img id="logoSource" crossorigin="anonymous" src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/40/7-eleven_logo.svg/120px-7-eleven_logo.svg.png" class="logo-overlay" alt="7E Logo">
         </div>
 
         <button class="btn btn-snap" id="snapBtn">📷 CHỤP VÀ TẢI ẢNH</button>
@@ -190,7 +203,7 @@
 <canvas id="canvas"></canvas>
 
 <script>
-    // Định nghĩa hàm toggleTheme ở phạm vi TOÀN CỤC ngay từ đầu để đảm bảo nút bấm luôn hoạt động độc lập
+    // Quản lý giao diện Sáng/Tối độc lập
     function toggleTheme() {
         const currentTheme = document.documentElement.getAttribute('data-theme');
         const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
@@ -219,18 +232,18 @@
         return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
     }
 
-    // Bọc toàn bộ logic lấy phần tử vào DOMContentLoaded để chắc chắn HTML đã dựng xong
+    // Đợi cấu trúc HTML tải xong hoàn toàn mới thực thi code xử lý
     window.addEventListener('DOMContentLoaded', () => {
-        // Khởi tạo theme ban đầu
         initTheme();
 
         const video = document.getElementById('video');
         const canvas = document.getElementById('canvas');
         const timestampDiv = document.getElementById('timestamp');
         const snapBtn = document.getElementById('snapBtn');
+        const logoSource = document.getElementById('logoSource');
         const ADDRESS_TEXT = "59 Trương Định P.Bến Thành TP.Hồ Chí Minh";
 
-        // Kích hoạt đồng hồ đếm giây ngay lập tức
+        // Khởi chạy đồng hồ thời gian thực
         if (timestampDiv) {
             timestampDiv.innerText = getFormattedTime();
             setInterval(() => {
@@ -238,12 +251,11 @@
             }, 1000);
         }
 
-        // Khởi động luồng lấy dữ liệu Camera một cách an toàn
+        // Khởi động luồng lấy dữ liệu Camera an toàn chống crash
         async function initCamera() {
-            // KIỂM TRA BẢO MẬT: Nếu chạy ở môi trường không có HTTPS hoặc localhost
             if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                console.error("Trình duyệt chặn quyền camera do môi trường không bảo mật.");
-                alert("⚠️ CẢNH BÁO: Ứng dụng cần được chạy qua môi trường bảo mật HTTPS (hoặc localhost) thì trình duyệt mới mở quyền và kích hoạt camera.");
+                console.error("Môi trường không hỗ trợ MediaDevices.");
+                alert("⚠️ CẢNH BÁO: Ứng dụng cần chạy trên HTTPS hoặc Localhost để cấp quyền mở Camera.");
                 return;
             }
 
@@ -255,18 +267,17 @@
                 if (video) video.srcObject = stream;
             } catch (err) {
                 console.error("Không thể kết nối camera: ", err);
-                alert("❌ LỖI: Thiết bị từ chối cấp quyền camera hoặc camera đang bị ứng dụng khác sử dụng.");
+                alert("❌ LỖI: Chưa cấp quyền camera hoặc thiết bị đang bận.");
             }
         }
 
-        // Chạy camera
         initCamera();
 
-        // Xử lý logic chụp ảnh
+        // Xử lý logic vẽ và xuất ảnh khi click nút Chụp
         if (snapBtn && video && canvas) {
             snapBtn.addEventListener('click', () => {
                 if (!video.videoWidth) {
-                    alert("Không thể chụp! Camera chưa khởi động thành công (đang màn hình đen).");
+                    alert("Camera chưa sẵn sàng, vui lòng đợi trong giây lát.");
                     return;
                 }
 
@@ -274,27 +285,42 @@
                 canvas.width = video.videoWidth;
                 canvas.height = video.videoHeight;
                 
+                // 1. Vẽ khung cảnh gốc từ camera
                 ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
                 
+                // Tính toán tỷ lệ font chữ theo độ phân giải ảnh thực tế
                 const timeText = getFormattedTime();
                 const fontSizeTime = Math.floor(canvas.height * 0.048);
                 const fontSizeAddr = Math.floor(canvas.height * 0.034);
                 
-                ctx.font = `bold ${fontSizeTime}px 'Share Tech Mono', monospace`;
-                
-                // Dòng thời gian (Đỏ đổ bóng, Trắng đè lên)
-                ctx.fillStyle = '#E2231A';
-                ctx.fillText(timeText, 23, canvas.height - (fontSizeAddr + 38));
+                // 2. Vẽ cụm text THUẦN TRẮNG (Đã bỏ đổ bóng đỏ)
                 ctx.fillStyle = '#FFF';
+                
+                // Vẽ dòng thời gian
+                ctx.font = `bold ${fontSizeTime}px 'Share Tech Mono', monospace`;
                 ctx.fillText(timeText, 20, canvas.height - (fontSizeAddr + 40));
                 
-                // Dòng địa chỉ
+                // Vẽ dòng địa chỉ
                 ctx.font = `bold ${fontSizeAddr}px 'Share Tech Mono', monospace`;
-                ctx.fillStyle = '#E2231A';
-                ctx.fillText(ADDRESS_TEXT, 22, canvas.height - 23);
-                ctx.fillStyle = '#FFF';
                 ctx.fillText(ADDRESS_TEXT, 20, canvas.height - 25);
                 
+                // 3. Vẽ Logo 7-Eleven ở phía bên phải hình
+                if (logoSource) {
+                    const logoSize = Math.floor(canvas.height * 0.12); // Kích thước logo bằng 12% chiều cao ảnh
+                    const logoX = canvas.width - logoSize - 20;       // Cách lề phải 20px
+                    const logoY = canvas.height - logoSize - 20;      // Cách lề dưới 20px
+                    
+                    // Vẽ nền trắng bo góc nhẹ cho logo trên ảnh gốc (giống giao diện xem trước)
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+                    ctx.beginPath();
+                    ctx.roundRect(logoX - 4, logoY - 4, logoSize + 8, logoSize + 8, 6);
+                    ctx.fill();
+                    
+                    // Vẽ đè logo lên trên nền trắng đó
+                    ctx.drawImage(logoSource, logoX, logoY, logoSize, logoSize);
+                }
+                
+                // 4. Xuất file chất lượng cao tải về máy
                 const dataURL = canvas.toDataURL('image/jpeg', 0.95);
                 const downloadLink = document.createElement('a');
                 downloadLink.download = `7E_Snap_${Date.now()}.jpg`;
