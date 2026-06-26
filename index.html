@@ -190,30 +190,24 @@
 <canvas id="canvas"></canvas>
 
 <script>
-    const video = document.getElementById('video');
-    const canvas = document.getElementById('canvas');
-    const timestampDiv = document.getElementById('timestamp');
-    const snapBtn = document.getElementById('snapBtn');
-    
-    // Chuỗi địa chỉ yêu cầu cố định
-    const ADDRESS_TEXT = "59 Trương Định P.Bến Thành TP.Hồ Chí Minh";
-
-    // 1. Quản lý giao diện Sáng/Tối (Light/Dark Mode) từ bản mẫu của bạn
-    function initTheme() {
-        const savedTheme = localStorage.getItem('appTheme') || 'light';
-        document.documentElement.setAttribute('data-theme', savedTheme);
-        document.getElementById('themeIcon').innerText = savedTheme === 'dark' ? '☀️' : '🌙';
-    }
-    
+    // Định nghĩa hàm toggleTheme ở phạm vi TOÀN CỤC ngay từ đầu để đảm bảo nút bấm luôn hoạt động độc lập
     function toggleTheme() {
         const currentTheme = document.documentElement.getAttribute('data-theme');
         const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
         document.documentElement.setAttribute('data-theme', newTheme);
         localStorage.setItem('appTheme', newTheme);
-        document.getElementById('themeIcon').innerText = newTheme === 'dark' ? '☀️' : '🌙';
+        const icon = document.getElementById('themeIcon');
+        if (icon) icon.innerText = newTheme === 'dark' ? '☀️' : '🌙';
     }
 
-    // 2. Logic định dạng và cập nhật chuỗi thời gian liên tục
+    function initTheme() {
+        const savedTheme = localStorage.getItem('appTheme') || 'light';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        const icon = document.getElementById('themeIcon');
+        if (icon) icon.innerText = savedTheme === 'dark' ? '☀️' : '🌙';
+    }
+
+    // Định dạng chuỗi thời gian camera
     function getFormattedTime() {
         const now = new Date();
         const year = now.getFullYear();
@@ -225,56 +219,90 @@
         return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
     }
 
-    setInterval(() => {
-        timestampDiv.innerText = getFormattedTime();
-    }, 1000);
+    // Bọc toàn bộ logic lấy phần tử vào DOMContentLoaded để chắc chắn HTML đã dựng xong
+    window.addEventListener('DOMContentLoaded', () => {
+        // Khởi tạo theme ban đầu
+        initTheme();
 
-    // 3. Khởi động luồng lấy dữ liệu Camera
-    async function initCamera() {
-        try {
-            const stream = await navigator.mediaDevices.getUserMedia({
-                video: { facingMode: 'environment' }, // Mặc định mở camera sau trên điện thoại
-                audio: false
-            });
-            video.srcObject = stream;
-        } catch (err) {
-            console.error("Không thể kết nối camera: ", err);
-            alert("Lỗi: Thiết bị chưa cấp quyền camera hoặc môi trường chạy thiếu chứng chỉ bảo mật HTTPS.");
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const timestampDiv = document.getElementById('timestamp');
+        const snapBtn = document.getElementById('snapBtn');
+        const ADDRESS_TEXT = "59 Trương Định P.Bến Thành TP.Hồ Chí Minh";
+
+        // Kích hoạt đồng hồ đếm giây ngay lập tức
+        if (timestampDiv) {
+            timestampDiv.innerText = getFormattedTime();
+            setInterval(() => {
+                timestampDiv.innerText = getFormattedTime();
+            }, 1000);
         }
-    }
 
-    // 4. Xử lý logic ghép chữ và xuất file khi nhấn nút chụp
-    snapBtn.addEventListener('click', () => {
-        if (!video.videoWidth) return;
+        // Khởi động luồng lấy dữ liệu Camera một cách an toàn
+        async function initCamera() {
+            // KIỂM TRA BẢO MẬT: Nếu chạy ở môi trường không có HTTPS hoặc localhost
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                console.error("Trình duyệt chặn quyền camera do môi trường không bảo mật.");
+                alert("⚠️ CẢNH BÁO: Ứng dụng cần được chạy qua môi trường bảo mật HTTPS (hoặc localhost) thì trình duyệt mới mở quyền và kích hoạt camera.");
+                return;
+            }
 
-        const ctx = canvas.getContext('2d');
-        
-        // Khóa độ phân giải canvas trùng khớp tuyệt đối với cảm biến camera
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        
-        // Bước A: Chụp lại khung cảnh hiện tại của video
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-        
-        // Bước B: Tính toán kích cỡ text tương thích với mọi độ phân giải ảnh (tỷ lệ 4.8% và 3.4%)
-        const timeText = getFormattedTime();
-        const fontSizeTime = Math.floor(canvas.height * 0.048);
-        const fontSizeAddr = Math.floor(canvas.height * 0.034);
-        
-        // Thiết lập Font chữ Share Tech Mono đồng nhất
-        ctx.font = `bold ${fontSizeTime}px 'Share Tech Mono', monospace`;
-        
-        // --- IN DÒNG THỜI GIAN ---
-        // Đổ lớp bóng giả lập phía dưới (Màu đỏ thương hiệu)
-        ctx.fillStyle = '#E2231A';
-        ctx.fillText(timeText, 23, canvas.height - (fontSizeAddr + 38));
-        // Đè chữ trắng tinh lên trên
-        ctx.fillStyle = '#FFF';
-        ctx.fillText(timeText, 20, canvas.height - (fontSizeAddr + 40));
-        
-        // --- IN DÒNG ĐỊA CHỈ ---
-        ctx.font = `bold ${fontSizeAddr}px 'Share Tech Mono', monospace`;
-        // Đổ lớp bóng phía dưới (Màu đỏ thương hiệu)
-        ctx.fillStyle = '#E2231A';
-        ctx.fillText(ADDRESS_TEXT, 22, canvas.height - 23);
-        //
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: 'environment' },
+                    audio: false
+                });
+                if (video) video.srcObject = stream;
+            } catch (err) {
+                console.error("Không thể kết nối camera: ", err);
+                alert("❌ LỖI: Thiết bị từ chối cấp quyền camera hoặc camera đang bị ứng dụng khác sử dụng.");
+            }
+        }
+
+        // Chạy camera
+        initCamera();
+
+        // Xử lý logic chụp ảnh
+        if (snapBtn && video && canvas) {
+            snapBtn.addEventListener('click', () => {
+                if (!video.videoWidth) {
+                    alert("Không thể chụp! Camera chưa khởi động thành công (đang màn hình đen).");
+                    return;
+                }
+
+                const ctx = canvas.getContext('2d');
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                
+                const timeText = getFormattedTime();
+                const fontSizeTime = Math.floor(canvas.height * 0.048);
+                const fontSizeAddr = Math.floor(canvas.height * 0.034);
+                
+                ctx.font = `bold ${fontSizeTime}px 'Share Tech Mono', monospace`;
+                
+                // Dòng thời gian (Đỏ đổ bóng, Trắng đè lên)
+                ctx.fillStyle = '#E2231A';
+                ctx.fillText(timeText, 23, canvas.height - (fontSizeAddr + 38));
+                ctx.fillStyle = '#FFF';
+                ctx.fillText(timeText, 20, canvas.height - (fontSizeAddr + 40));
+                
+                // Dòng địa chỉ
+                ctx.font = `bold ${fontSizeAddr}px 'Share Tech Mono', monospace`;
+                ctx.fillStyle = '#E2231A';
+                ctx.fillText(ADDRESS_TEXT, 22, canvas.height - 23);
+                ctx.fillStyle = '#FFF';
+                ctx.fillText(ADDRESS_TEXT, 20, canvas.height - 25);
+                
+                const dataURL = canvas.toDataURL('image/jpeg', 0.95);
+                const downloadLink = document.createElement('a');
+                downloadLink.download = `7E_Snap_${Date.now()}.jpg`;
+                downloadLink.href = dataURL;
+                downloadLink.click();
+            });
+        }
+    });
+</script>
+</body>
+</html>
