@@ -91,23 +91,24 @@
 
         .app-body { padding: 20px; }
 
-        /* Khung Viewfinder Camera tinh chỉnh để hòa hợp với Card UI */
+        /* ĐƯỢC FIX: Bỏ thuộc tính tỷ lệ 4:3 cố định, để JS tự động tính toán theo camera thật */
         .camera-wrapper {
             position: relative;
             width: 100%;
-            aspect-ratio: 4/3;
             background: #000;
             border-radius: 12px;
             overflow: hidden;
             border: 2px solid var(--border-color);
             box-shadow: inset 0 0 20px rgba(0,0,0,0.6);
             margin-bottom: 18px;
+            transition: aspect-ratio 0.15s ease-out; /* Tạo hiệu ứng mượt khi khớp khung hình */
         }
 
         video {
             width: 100%;
             height: 100%;
-            object-fit: cover;
+            object-fit: contain; /* Đổi sang contain hoặc cover đều khít 100% vì khung wrapper đã đồng bộ */
+            display: block;
         }
 
         /* Lớp phủ thông tin chữ TRẮNG VIỀN ĐEN sắc nét chống chìm chữ */
@@ -117,7 +118,7 @@
             left: 15px;
             right: 15px;
             font-family: 'Share Tech Mono', monospace;
-            color: #FFF; /* Màu chữ chính trắng */
+            color: #FFF; 
             pointer-events: none;
             line-height: 1.4;
             /* Tạo viền đen bao quanh chữ bằng shadow đa hướng */
@@ -147,7 +148,7 @@
             word-wrap: break-word;
         }
 
-        /* ĐƯỢC FIX: Logo đưa lên góc TRÊN bên phải để chống đè chữ khi chụp màn hình dọc */
+        /* Logo đưa lên góc TRÊN bên phải để chống đè chữ khi chụp dọc */
         .logo-overlay {
             position: absolute;
             top: 15px;
@@ -230,7 +231,7 @@
 
     <div class="app-body">
         <!-- Khung hiển thị camera trực tiếp -->
-        <div class="camera-wrapper">
+        <div class="camera-wrapper" id="cameraWrapper">
             <video id="video" autoplay playsinline></video>
             
             <!-- Lớp phủ thông tin hiển thị thời gian và địa chỉ bên dưới -->
@@ -292,6 +293,7 @@
 
         const video = document.getElementById('video');
         const canvas = document.getElementById('canvas');
+        const cameraWrapper = document.getElementById('cameraWrapper');
         const timestampDiv = document.getElementById('timestamp');
         const addressDiv = document.getElementById('address');
         const addressInput = document.getElementById('addressInput');
@@ -314,7 +316,17 @@
             }, 1000);
         }
 
-        // ĐƯỢC FIX: Kích hoạt luồng Camera chất lượng cao (yêu cầu độ phân giải Full HD / 4K lý tưởng)
+        // ĐƯỢC FIX: Lắng nghe sự kiện nạp luồng video để ép khung hiển thị khớp tỷ lệ camera thật
+        if (video && cameraWrapper) {
+            video.addEventListener('loadedmetadata', () => {
+                if (video.videoWidth && video.videoHeight) {
+                    // Cập nhật tỷ lệ aspect-ratio của khung ngắm bằng chính xác tỷ lệ của camera thiết bị
+                    cameraWrapper.style.aspectRatio = `${video.videoWidth} / ${video.videoHeight}`;
+                }
+            });
+        }
+
+        // Kích hoạt luồng Camera chất lượng cao (yêu cầu độ phân giải Full HD / 4K lý tưởng)
         async function initCamera() {
             if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
                 console.error("Môi trường không hỗ trợ MediaDevices.");
@@ -326,15 +338,14 @@
                 const stream = await navigator.mediaDevices.getUserMedia({
                     video: { 
                         facingMode: 'environment',
-                        width: { ideal: 3840 },  // Yêu cầu độ phân giải chiều rộng tối đa (lên tới 4K)
-                        height: { ideal: 2160 }  // Yêu cầu độ phân giải chiều cao tối đa (lên tới 4K)
+                        width: { ideal: 3840 },  
+                        height: { ideal: 2160 }  
                     },
                     audio: false
                 });
                 if (video) video.srcObject = stream;
             } catch (err) {
                 console.error("Không thể kết nối camera độ phân giải cao: ", err);
-                // Fallback thử lại với cấu hình mặc định nếu thiết bị quá cũ không chịu nổi luồng HD
                 try {
                     const fallbackStream = await navigator.mediaDevices.getUserMedia({
                         video: { facingMode: 'environment' },
@@ -359,14 +370,14 @@
 
                 const ctx = canvas.getContext('2d');
                 
-                // Gán kích thước canvas bằng chính xác kích thước thật độ phân giải cao của luồng video
+                // Khởi tạo kích thước canvas bằng kích thước pixel gốc từ camera
                 canvas.width = video.videoWidth;
                 canvas.height = video.videoHeight;
                 
-                // 1. Vẽ khung cảnh gốc từ camera dữ liệu gốc sắc nét
+                // 1. Vẽ khung cảnh gốc từ camera (Khớp 100% không lệch khung hình nhờ đồng bộ tỷ lệ)
                 ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
                 
-                // ĐƯỢC FIX: Tính toán tỷ lệ font chữ dựa theo CẠNH NGẮN NHẤT để ảnh dọc/ngang không bị lệch kích cỡ
+                // Tính toán tỷ lệ font chữ dựa theo CẠNH NGẮN NHẤT để chữ không bị to/nhỏ bất thường giữa dọc và ngang
                 const baseSize = Math.min(canvas.width, canvas.height);
                 
                 const timeText = getFormattedTime();
@@ -376,43 +387,42 @@
                 const fontSizeAddr = Math.floor(baseSize * 0.038);
                 const padding = Math.floor(baseSize * 0.04);
                 
-                // Thiết lập viền chữ chuyên nghiệp trên canvas (độ dày viền ăn theo tỷ lệ chữ)
-                ctx.strokeStyle = '#000000'; // Màu viền đen thuần
-                ctx.fillStyle = '#FFFFFF';   // Màu ruột trắng thuần
+                // Thiết lập thông số viền chữ chuyên nghiệp
+                ctx.strokeStyle = '#000000'; 
+                ctx.fillStyle = '#FFFFFF';   
                 ctx.lineJoin = 'round';
                 ctx.miterLimit = 2;
 
-                // 2. Vẽ dòng địa chỉ (Nằm ở dưới cùng)
+                // 2. Vẽ dòng địa chỉ (Dưới cùng)
                 ctx.font = `bold ${fontSizeAddr}px 'Share Tech Mono', monospace`;
                 const addrY = canvas.height - padding;
                 ctx.lineWidth = Math.max(3, Math.floor(fontSizeAddr * 0.16));
                 ctx.strokeText(activeAddress, padding, addrY);
                 ctx.fillText(activeAddress, padding, addrY);
 
-                // 3. Vẽ dòng thời gian (Nằm đè phía trên dòng địa chỉ)
+                // 3. Vẽ dòng thời gian (Phía trên dòng địa chỉ)
                 ctx.font = `bold ${fontSizeTime}px 'Share Tech Mono', monospace`;
                 const timeY = addrY - fontSizeAddr - Math.floor(baseSize * 0.02);
                 ctx.lineWidth = Math.max(4, Math.floor(fontSizeTime * 0.16));
                 ctx.strokeText(timeText, padding, timeY);
                 ctx.fillText(timeText, padding, timeY);
                 
-                // 4. ĐƯỢC FIX: Vẽ Logo 7-Eleven ở góc TRÊN bên phải ảnh (Tránh hoàn toàn việc đè chữ)
+                // 4. Vẽ Logo 7-Eleven ở góc TRÊN bên phải ảnh (Khớp chính xác vị trí hiển thị)
                 if (logoSource) {
-                    const logoSize = Math.floor(baseSize * 0.13); // Kích thước logo chuẩn tỷ lệ 13% khung hình
+                    const logoSize = Math.floor(baseSize * 0.13); 
                     const logoX = canvas.width - logoSize - padding;
                     const logoY = padding;
                     
-                    // Vẽ nền trắng bo góc nhẹ làm bệ đỡ cho logo nổi bật trên ảnh gốc
+                    // Nền trắng bo góc nhẹ làm bệ đỡ cho logo trên ảnh gốc
                     ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
                     ctx.beginPath();
                     ctx.roundRect(logoX - 4, logoY - 4, logoSize + 8, logoSize + 8, Math.max(2, Math.floor(baseSize * 0.015)));
                     ctx.fill();
                     
-                    // Vẽ đè logo thương hiệu lên bệ nền trắng
                     ctx.drawImage(logoSource, logoX, logoY, logoSize, logoSize);
                 }
                 
-                // 5. Xuất file ảnh JPEG siêu nét chất lượng tối đa 95%
+                // 5. Xuất file ảnh JPEG chất lượng cao
                 const dataURL = canvas.toDataURL('image/jpeg', 0.95);
                 const downloadLink = document.createElement('a');
                 downloadLink.download = `7E_Snap_${Date.now()}.jpg`;
