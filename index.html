@@ -5,12 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>1167 Trương Định - Camera Timestamp</title>
     
+    <!-- Icon 7-Eleven trên Tab trình duyệt -->
     <link class="app-icon" rel="icon" href="https://upload.wikimedia.org/wikipedia/commons/thumb/4/40/7-eleven_logo.svg/1280px-7-eleven_logo.svg.png">
     
+    <!-- Nhúng font chữ phong cách kỹ thuật số cho lớp hiển thị thời gian -->
     <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
     
     <style>
-        /* CSS Reset & Font dựa trên template của bạn */
+        /* CSS Reset & Font dựa trên template */
         * { 
             box-sizing: border-box; 
             margin: 0; 
@@ -113,7 +115,7 @@
             position: absolute;
             bottom: 15px;
             left: 15px;
-            right: 75px; /* Giới hạn khoảng cách để không đè vào logo bên phải */
+            right: 15px;
             font-family: 'Share Tech Mono', monospace;
             color: #FFF; /* Màu chữ chính trắng */
             pointer-events: none;
@@ -128,6 +130,7 @@
                  0px   -1.5px 0 #000,
                  1.5px   0px 0 #000,
                 -1.5px   0px 0 #000;
+            z-index: 5;
         }
 
         #timestamp {
@@ -144,10 +147,10 @@
             word-wrap: break-word;
         }
 
-        /* CSS hiển thị Logo nhỏ đè bên góc phải khung ảnh */
+        /* ĐƯỢC FIX: Logo đưa lên góc TRÊN bên phải để chống đè chữ khi chụp màn hình dọc */
         .logo-overlay {
             position: absolute;
-            bottom: 15px;
+            top: 15px;
             right: 15px;
             height: 42px;
             width: auto;
@@ -156,6 +159,7 @@
             padding: 4px;
             border-radius: 6px;
             box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            z-index: 5;
         }
 
         /* KHU VỰC Ô NHẬP ĐỊA CHỈ TRỰC TIẾP */
@@ -215,31 +219,37 @@
 <body>
 
 <div class="app-container">
+    <!-- Thanh tiêu đề chuẩn mẫu giao diện cửa hàng -->
     <div class="app-header">
         <div class="header-left">
             <img src="https://upload.wikimedia.org/wikipedia/commons/4/40/7-eleven_logo.svg" alt="7-Eleven Logo" class="app-logo">
-            <h2>1167 Trương Định</h2>
+            <h2>59 Trương Định</h2>
         </div>
         <button class="theme-btn" onclick="toggleTheme()" id="themeIcon">🌙</button>
     </div>
 
     <div class="app-body">
+        <!-- Khung hiển thị camera trực tiếp -->
         <div class="camera-wrapper">
             <video id="video" autoplay playsinline></video>
             
+            <!-- Lớp phủ thông tin hiển thị thời gian và địa chỉ bên dưới -->
             <div class="timestamp-overlay">
                 <div id="timestamp">0000-00-00 00:00:00</div>
                 <div id="address">59 Trương Định P.Bến Thành TP.Hồ Chí Minh</div>
             </div>
 
+            <!-- Logo 7-Eleven nhỏ hiển thị ở góc TRÊN bên phải -->
             <img id="logoSource" crossorigin="anonymous" src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/40/7-eleven_logo.svg/120px-7-eleven_logo.svg.png" class="logo-overlay" alt="7E Logo">
         </div>
 
+        <!-- Ô TEXTBOX ĐỂ SỬA ĐỊA CHỈ TRỰC TIẾP -->
         <div class="input-group">
             <label class="input-label" for="addressInput">📍 Địa chỉ hiển thị trên ảnh:</label>
             <input type="text" id="addressInput" class="address-textbox" value="59 Trương Định P.Bến Thành TP.Hồ Chí Minh" placeholder="Nhập địa chỉ hoặc ghi chú ca làm việc...">
         </div>
 
+        <!-- Nút chụp hình mềm mại đồng nhất phom nút cũ -->
         <button class="btn btn-snap" id="snapBtn">📷 CHỤP VÀ TẢI ẢNH</button>
     </div>
 </div>
@@ -290,7 +300,7 @@
 
         // LẮNG NGHE SỰ KIỆN TEXTBOX: Cập nhật chữ trên màn hình live khi người dùng gõ
         if (addressInput && addressDiv) {
-            addressDiv.innerText = addressInput.value; // Đặt giá trị ban đầu
+            addressDiv.innerText = addressInput.value;
             addressInput.addEventListener('input', () => {
                 addressDiv.innerText = addressInput.value;
             });
@@ -304,7 +314,7 @@
             }, 1000);
         }
 
-        // Khởi động luồng lấy dữ liệu Camera an toàn chống crash
+        // ĐƯỢC FIX: Kích hoạt luồng Camera chất lượng cao (yêu cầu độ phân giải Full HD / 4K lý tưởng)
         async function initCamera() {
             if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
                 console.error("Môi trường không hỗ trợ MediaDevices.");
@@ -314,19 +324,32 @@
 
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({
-                    video: { facingMode: 'environment' },
+                    video: { 
+                        facingMode: 'environment',
+                        width: { ideal: 3840 },  // Yêu cầu độ phân giải chiều rộng tối đa (lên tới 4K)
+                        height: { ideal: 2160 }  // Yêu cầu độ phân giải chiều cao tối đa (lên tới 4K)
+                    },
                     audio: false
                 });
                 if (video) video.srcObject = stream;
             } catch (err) {
-                console.error("Không thể kết nối camera: ", err);
-                alert("❌ LỖI: Chưa cấp quyền camera hoặc thiết bị đang bận.");
+                console.error("Không thể kết nối camera độ phân giải cao: ", err);
+                // Fallback thử lại với cấu hình mặc định nếu thiết bị quá cũ không chịu nổi luồng HD
+                try {
+                    const fallbackStream = await navigator.mediaDevices.getUserMedia({
+                        video: { facingMode: 'environment' },
+                        audio: false
+                    });
+                    if (video) video.srcObject = fallbackStream;
+                } catch (fallbackErr) {
+                    alert("❌ LỖI: Chưa cấp quyền camera hoặc thiết bị đang bận.");
+                }
             }
         }
 
         initCamera();
 
-        // Xử lý logic vẽ và xuất ảnh khi click nút Chụp
+        // Xử lý logic vẽ và xuất ảnh chất lượng cao khi click nút Chụp
         if (snapBtn && video && canvas) {
             snapBtn.addEventListener('click', () => {
                 if (!video.videoWidth) {
@@ -335,55 +358,61 @@
                 }
 
                 const ctx = canvas.getContext('2d');
+                
+                // Gán kích thước canvas bằng chính xác kích thước thật độ phân giải cao của luồng video
                 canvas.width = video.videoWidth;
                 canvas.height = video.videoHeight;
                 
-                // 1. Vẽ khung cảnh gốc từ camera
+                // 1. Vẽ khung cảnh gốc từ camera dữ liệu gốc sắc nét
                 ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
                 
-                // Tính toán tỷ lệ font chữ và độ dày viền theo độ phân giải ảnh thực tế
+                // ĐƯỢC FIX: Tính toán tỷ lệ font chữ dựa theo CẠNH NGẮN NHẤT để ảnh dọc/ngang không bị lệch kích cỡ
+                const baseSize = Math.min(canvas.width, canvas.height);
+                
                 const timeText = getFormattedTime();
                 const activeAddress = addressInput ? addressInput.value : "";
-                const fontSizeTime = Math.floor(canvas.height * 0.048);
-                const fontSizeAddr = Math.floor(canvas.height * 0.034);
                 
-                // Thiết lập viền chữ trên canvas (Độ dày viền bằng 15% kích thước font)
+                const fontSizeTime = Math.floor(baseSize * 0.055);
+                const fontSizeAddr = Math.floor(baseSize * 0.038);
+                const padding = Math.floor(baseSize * 0.04);
+                
+                // Thiết lập viền chữ chuyên nghiệp trên canvas (độ dày viền ăn theo tỷ lệ chữ)
                 ctx.strokeStyle = '#000000'; // Màu viền đen thuần
                 ctx.fillStyle = '#FFFFFF';   // Màu ruột trắng thuần
                 ctx.lineJoin = 'round';
                 ctx.miterLimit = 2;
 
-                // 2. Vẽ dòng thời gian (Vẽ viền trước, tô ruột sau)
-                ctx.font = `bold ${fontSizeTime}px 'Share Tech Mono', monospace`;
-                const timeY = canvas.height - (fontSizeAddr + 40);
-                ctx.lineWidth = Math.max(3, Math.floor(fontSizeTime * 0.15));
-                ctx.strokeText(timeText, 20, timeY);
-                ctx.fillText(timeText, 20, timeY);
-                
-                // 3. Vẽ dòng địa chỉ lấy từ Textbox (Vẽ viền trước, tô ruột sau)
+                // 2. Vẽ dòng địa chỉ (Nằm ở dưới cùng)
                 ctx.font = `bold ${fontSizeAddr}px 'Share Tech Mono', monospace`;
-                const addrY = canvas.height - 25;
-                ctx.lineWidth = Math.max(2, Math.floor(fontSizeAddr * 0.15));
-                ctx.strokeText(activeAddress, 20, addrY);
-                ctx.fillText(activeAddress, 20, addrY);
+                const addrY = canvas.height - padding;
+                ctx.lineWidth = Math.max(3, Math.floor(fontSizeAddr * 0.16));
+                ctx.strokeText(activeAddress, padding, addrY);
+                ctx.fillText(activeAddress, padding, addrY);
+
+                // 3. Vẽ dòng thời gian (Nằm đè phía trên dòng địa chỉ)
+                ctx.font = `bold ${fontSizeTime}px 'Share Tech Mono', monospace`;
+                const timeY = addrY - fontSizeAddr - Math.floor(baseSize * 0.02);
+                ctx.lineWidth = Math.max(4, Math.floor(fontSizeTime * 0.16));
+                ctx.strokeText(timeText, padding, timeY);
+                ctx.fillText(timeText, padding, timeY);
                 
-                // 4. Vẽ Logo 7-Eleven ở phía bên phải hình
+                // 4. ĐƯỢC FIX: Vẽ Logo 7-Eleven ở góc TRÊN bên phải ảnh (Tránh hoàn toàn việc đè chữ)
                 if (logoSource) {
-                    const logoSize = Math.floor(canvas.height * 0.12); // Kích thước logo bằng 12% chiều cao ảnh
-                    const logoX = canvas.width - logoSize - 20;       // Cách lề phải 20px
-                    const logoY = canvas.height - logoSize - 20;      // Cách lề dưới 20px
+                    const logoSize = Math.floor(baseSize * 0.13); // Kích thước logo chuẩn tỷ lệ 13% khung hình
+                    const logoX = canvas.width - logoSize - padding;
+                    const logoY = padding;
                     
-                    // Vẽ nền trắng bo góc nhẹ cho logo trên ảnh gốc (giống giao diện xem trước)
+                    // Vẽ nền trắng bo góc nhẹ làm bệ đỡ cho logo nổi bật trên ảnh gốc
                     ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
                     ctx.beginPath();
-                    ctx.roundRect(logoX - 4, logoY - 4, logoSize + 8, logoSize + 8, 6);
+                    ctx.roundRect(logoX - 4, logoY - 4, logoSize + 8, logoSize + 8, Math.max(2, Math.floor(baseSize * 0.015)));
                     ctx.fill();
                     
-                    // Vẽ đè logo lên trên nền trắng đó
+                    // Vẽ đè logo thương hiệu lên bệ nền trắng
                     ctx.drawImage(logoSource, logoX, logoY, logoSize, logoSize);
                 }
                 
-                // 5. Xuất file chất lượng cao tải về máy
+                // 5. Xuất file ảnh JPEG siêu nét chất lượng tối đa 95%
                 const dataURL = canvas.toDataURL('image/jpeg', 0.95);
                 const downloadLink = document.createElement('a');
                 downloadLink.download = `7E_Snap_${Date.now()}.jpg`;
