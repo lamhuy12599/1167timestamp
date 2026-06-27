@@ -28,6 +28,7 @@
             --text-main: #333;
             --text-muted: #666;
             --border-color: #eee;
+            --input-border: #ccc;
         }
 
         [data-theme="dark"] {
@@ -36,6 +37,7 @@
             --text-main: #f1f1f1;
             --text-muted: #aaa;
             --border-color: #333;
+            --input-border: #555;
         }
 
         body { 
@@ -97,7 +99,7 @@
             overflow: hidden;
             border: 2px solid var(--border-color);
             box-shadow: inset 0 0 20px rgba(0,0,0,0.6);
-            margin-bottom: 20px;
+            margin-bottom: 18px;
         }
 
         video {
@@ -106,31 +108,40 @@
             object-fit: cover;
         }
 
-        /* Lớp phủ thông tin chữ thuần trắng thanh lịch */
+        /* Lớp phủ thông tin chữ TRẮNG VIỀN ĐEN sắc nét chống chìm chữ */
         .timestamp-overlay {
             position: absolute;
             bottom: 15px;
             left: 15px;
+            right: 75px; /* Giới hạn khoảng cách để không đè vào logo bên phải */
             font-family: 'Share Tech Mono', monospace;
-            color: #FFF; /* Màu chữ thuần trắng */
+            color: #FFF; /* Màu chữ chính trắng */
             pointer-events: none;
-            background: rgba(0, 0, 0, 0.35); /* Nền mờ giúp giữ độ tương phản cao */
-            padding: 8px 12px;
-            border-radius: 8px;
             line-height: 1.4;
+            /* Tạo viền đen bao quanh chữ bằng shadow đa hướng */
+            text-shadow: 
+                -1.5px -1.5px 0 #000,  
+                 1.5px -1.5px 0 #000,
+                -1.5px  1.5px 0 #000,
+                 1.5px  1.5px 0 #000,
+                 0px    1.5px 0 #000,
+                 0px   -1.5px 0 #000,
+                 1.5px   0px 0 #000,
+                -1.5px   0px 0 #000;
         }
 
         #timestamp {
-            font-size: 1.35rem;
+            font-size: 1.3rem;
             font-weight: bold;
-            letter-spacing: 1px;
+            letter-spacing: 0.5px;
         }
 
         #address {
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             font-weight: bold;
             margin-top: 2px;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.3px;
+            word-wrap: break-word;
         }
 
         /* CSS hiển thị Logo nhỏ đè bên góc phải khung ảnh */
@@ -138,16 +149,46 @@
             position: absolute;
             bottom: 15px;
             right: 15px;
-            height: 45px;
+            height: 42px;
             width: auto;
             pointer-events: none;
-            background: rgba(255, 255, 255, 0.9); /* Thêm nền trắng nhẹ cho logo nổi bật */
+            background: rgba(255, 255, 255, 0.95);
             padding: 4px;
             border-radius: 6px;
             box-shadow: 0 4px 10px rgba(0,0,0,0.3);
         }
 
-        /* Nút bấm bo góc mềm mại, chuyển động mượt theo đúng form mẫu của bạn */
+        /* KHU VỰC Ô NHẬP ĐỊA CHỈ TRỰC TIẾP */
+        .input-group {
+            margin-bottom: 15px;
+            text-align: left;
+        }
+        .input-label {
+            font-size: 12px;
+            font-weight: bold;
+            color: var(--7e-green);
+            margin-bottom: 5px;
+            display: block;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .address-textbox {
+            width: 100%;
+            padding: 12px;
+            font-size: 14px;
+            border: 2px solid var(--input-border);
+            border-radius: 8px;
+            background: var(--bg-card);
+            color: var(--text-main);
+            outline: none;
+            transition: 0.2s;
+        }
+        .address-textbox:focus {
+            border-color: var(--7e-orange);
+            box-shadow: 0 0 8px rgba(243, 112, 33, 0.15);
+        }
+
+        /* Nút bấm bo góc mềm mại, chuyển động mượt */
         .btn { 
             width: 100%; 
             padding: 14px; 
@@ -164,8 +205,6 @@
             transition: 0.2s; 
         }
         .btn:active { transform: scale(0.98); }
-        
-        /* Sử dụng sắc đỏ thương hiệu cho nút hành động chính */
         .btn-snap { background-color: var(--7e-red); box-shadow: 0 4px 12px rgba(226, 35, 26, 0.2); }
         .btn-snap:hover { background-color: #bd1a12; }
 
@@ -179,7 +218,7 @@
     <div class="app-header">
         <div class="header-left">
             <img src="https://upload.wikimedia.org/wikipedia/commons/4/40/7-eleven_logo.svg" alt="7-Eleven Logo" class="app-logo">
-            <h2>59 Trương Định</h2>
+            <h2>1167 Trương Định</h2>
         </div>
         <button class="theme-btn" onclick="toggleTheme()" id="themeIcon">🌙</button>
     </div>
@@ -194,6 +233,11 @@
             </div>
 
             <img id="logoSource" crossorigin="anonymous" src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/40/7-eleven_logo.svg/120px-7-eleven_logo.svg.png" class="logo-overlay" alt="7E Logo">
+        </div>
+
+        <div class="input-group">
+            <label class="input-label" for="addressInput">📍 Địa chỉ hiển thị trên ảnh:</label>
+            <input type="text" id="addressInput" class="address-textbox" value="59 Trương Định P.Bến Thành TP.Hồ Chí Minh" placeholder="Nhập địa chỉ hoặc ghi chú ca làm việc...">
         </div>
 
         <button class="btn btn-snap" id="snapBtn">📷 CHỤP VÀ TẢI ẢNH</button>
@@ -239,9 +283,18 @@
         const video = document.getElementById('video');
         const canvas = document.getElementById('canvas');
         const timestampDiv = document.getElementById('timestamp');
+        const addressDiv = document.getElementById('address');
+        const addressInput = document.getElementById('addressInput');
         const snapBtn = document.getElementById('snapBtn');
         const logoSource = document.getElementById('logoSource');
-        const ADDRESS_TEXT = "59 Trương Định P.Bến Thành TP.Hồ Chí Minh";
+
+        // LẮNG NGHE SỰ KIỆN TEXTBOX: Cập nhật chữ trên màn hình live khi người dùng gõ
+        if (addressInput && addressDiv) {
+            addressDiv.innerText = addressInput.value; // Đặt giá trị ban đầu
+            addressInput.addEventListener('input', () => {
+                addressDiv.innerText = addressInput.value;
+            });
+        }
 
         // Khởi chạy đồng hồ thời gian thực
         if (timestampDiv) {
@@ -288,30 +341,40 @@
                 // 1. Vẽ khung cảnh gốc từ camera
                 ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
                 
-                // Tính toán tỷ lệ font chữ theo độ phân giải ảnh thực tế
+                // Tính toán tỷ lệ font chữ và độ dày viền theo độ phân giải ảnh thực tế
                 const timeText = getFormattedTime();
+                const activeAddress = addressInput ? addressInput.value : "";
                 const fontSizeTime = Math.floor(canvas.height * 0.048);
                 const fontSizeAddr = Math.floor(canvas.height * 0.034);
                 
-                // 2. Vẽ cụm text THUẦN TRẮNG (Đã bỏ đổ bóng đỏ)
-                ctx.fillStyle = '#FFF';
-                
-                // Vẽ dòng thời gian
+                // Thiết lập viền chữ trên canvas (Độ dày viền bằng 15% kích thước font)
+                ctx.strokeStyle = '#000000'; // Màu viền đen thuần
+                ctx.fillStyle = '#FFFFFF';   // Màu ruột trắng thuần
+                ctx.lineJoin = 'round';
+                ctx.miterLimit = 2;
+
+                // 2. Vẽ dòng thời gian (Vẽ viền trước, tô ruột sau)
                 ctx.font = `bold ${fontSizeTime}px 'Share Tech Mono', monospace`;
-                ctx.fillText(timeText, 20, canvas.height - (fontSizeAddr + 40));
+                const timeY = canvas.height - (fontSizeAddr + 40);
+                ctx.lineWidth = Math.max(3, Math.floor(fontSizeTime * 0.15));
+                ctx.strokeText(timeText, 20, timeY);
+                ctx.fillText(timeText, 20, timeY);
                 
-                // Vẽ dòng địa chỉ
+                // 3. Vẽ dòng địa chỉ lấy từ Textbox (Vẽ viền trước, tô ruột sau)
                 ctx.font = `bold ${fontSizeAddr}px 'Share Tech Mono', monospace`;
-                ctx.fillText(ADDRESS_TEXT, 20, canvas.height - 25);
+                const addrY = canvas.height - 25;
+                ctx.lineWidth = Math.max(2, Math.floor(fontSizeAddr * 0.15));
+                ctx.strokeText(activeAddress, 20, addrY);
+                ctx.fillText(activeAddress, 20, addrY);
                 
-                // 3. Vẽ Logo 7-Eleven ở phía bên phải hình
+                // 4. Vẽ Logo 7-Eleven ở phía bên phải hình
                 if (logoSource) {
                     const logoSize = Math.floor(canvas.height * 0.12); // Kích thước logo bằng 12% chiều cao ảnh
                     const logoX = canvas.width - logoSize - 20;       // Cách lề phải 20px
                     const logoY = canvas.height - logoSize - 20;      // Cách lề dưới 20px
                     
                     // Vẽ nền trắng bo góc nhẹ cho logo trên ảnh gốc (giống giao diện xem trước)
-                    ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
                     ctx.beginPath();
                     ctx.roundRect(logoX - 4, logoY - 4, logoSize + 8, logoSize + 8, 6);
                     ctx.fill();
@@ -320,7 +383,7 @@
                     ctx.drawImage(logoSource, logoX, logoY, logoSize, logoSize);
                 }
                 
-                // 4. Xuất file chất lượng cao tải về máy
+                // 5. Xuất file chất lượng cao tải về máy
                 const dataURL = canvas.toDataURL('image/jpeg', 0.95);
                 const downloadLink = document.createElement('a');
                 downloadLink.download = `7E_Snap_${Date.now()}.jpg`;
