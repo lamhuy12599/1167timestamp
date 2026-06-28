@@ -12,7 +12,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
     
     <style>
-        /* CSS Reset & Font dựa trên template */
+        /* CSS Reset & Font */
         * { 
             box-sizing: border-box; 
             margin: 0; 
@@ -61,7 +61,7 @@
             transition: 0.3s; 
         }
 
-        /* Header chứa dải màu accent và Logo nằm ngang */
+        /* Header chứa dải màu và Logo */
         .app-header { 
             background: var(--bg-card); 
             display: flex; 
@@ -72,7 +72,6 @@
             position: relative; 
             transition: 0.3s;
         }
-        /* Dải màu thương hiệu đặc trưng ở đỉnh đầu */
         .app-header::before { 
             content: ''; 
             position: absolute; 
@@ -91,7 +90,7 @@
 
         .app-body { padding: 20px; }
 
-        /* Khung Viewfinder Camera tự động co giãn khớp tỷ lệ thực tế */
+        /* Khung hiển thị camera trực tiếp */
         .camera-wrapper {
             position: relative;
             width: 100%;
@@ -111,7 +110,7 @@
             display: block;
         }
 
-        /* Lớp phủ thông tin chữ TRẮNG VIỀN ĐEN sắc nét */
+        /* Lớp phủ chữ trắng viền đen sắc nét */
         .timestamp-overlay {
             position: absolute;
             bottom: 15px;
@@ -133,21 +132,10 @@
             z-index: 5;
         }
 
-        #timestamp {
-            font-size: 1.3rem;
-            font-weight: bold;
-            letter-spacing: 0.5px;
-        }
+        #timestamp { font-size: 1.3rem; font-weight: bold; letter-spacing: 0.5px; }
+        #address { font-size: 0.85rem; font-weight: bold; margin-top: 2px; letter-spacing: 0.3px; word-wrap: break-word; }
 
-        #address {
-            font-size: 0.85rem;
-            font-weight: bold;
-            margin-top: 2px;
-            letter-spacing: 0.3px;
-            word-wrap: break-word;
-        }
-
-        /* Logo đưa lên góc TRÊN bên phải để chống đè chữ khi chụp dọc */
+        /* Logo góc trên bên phải */
         .logo-overlay {
             position: absolute;
             top: 15px;
@@ -162,11 +150,8 @@
             z-index: 5;
         }
 
-        /* KHU VỰC Ô NHẬP LIỆU TEXTBOX */
-        .input-group {
-            margin-bottom: 15px;
-            text-align: left;
-        }
+        /* Khu vực ô nhập liệu Textbox */
+        .input-group { margin-bottom: 15px; text-align: left; }
         .input-label {
             font-size: 12px;
             font-weight: bold;
@@ -192,7 +177,14 @@
             box-shadow: 0 0 8px rgba(243, 112, 33, 0.15);
         }
 
-        /* Nút bấm chụp hình */
+        /* Các nút điều khiển */
+        .actions-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 5px;
+        }
+
         .btn { 
             width: 100%; 
             padding: 14px; 
@@ -209,17 +201,21 @@
             transition: 0.2s; 
         }
         .btn:active { transform: scale(0.98); }
+        
         .btn-snap { background-color: var(--7e-red); box-shadow: 0 4px 12px rgba(226, 35, 26, 0.2); }
         .btn-snap:hover { background-color: #bd1a12; }
 
-        /* Canvas ẩn phục vụ render ảnh xuất ra */
+        /* MỚI: Nút tải ảnh lên phong cách xanh lá 7-Eleven */
+        .btn-upload { background-color: var(--7e-green); box-shadow: 0 4px 12px rgba(0, 128, 98, 0.2); }
+        .btn-upload:hover { background-color: #005c46; }
+
+        /* Canvas ẩn phục vụ render ảnh */
         canvas { display: none; }
     </style>
 </head>
 <body>
 
 <div class="app-container">
-    <!-- Thanh tiêu đề chuẩn mẫu giao diện cửa hàng -->
     <div class="app-header">
         <div class="header-left">
             <img src="https://upload.wikimedia.org/wikipedia/commons/4/40/7-eleven_logo.svg" alt="7-Eleven Logo" class="app-logo">
@@ -229,41 +225,45 @@
     </div>
 
     <div class="app-body">
-        <!-- Khung hiển thị camera trực tiếp -->
         <div class="camera-wrapper" id="cameraWrapper">
             <video id="video" autoplay playsinline></video>
             
-            <!-- Lớp phủ thông tin hiển thị thời gian và địa chỉ bên dưới -->
             <div class="timestamp-overlay">
                 <div id="timestamp">0000-00-00 00:00:00</div>
                 <div id="address">59 Trương Định P.Bến Thành TP.Hồ Chí Minh</div>
             </div>
 
-            <!-- Logo 7-Eleven nhỏ hiển thị ở góc TRÊN bên phải -->
             <img id="logoSource" crossorigin="anonymous" src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/40/7-eleven_logo.svg/120px-7-eleven_logo.svg.png" class="logo-overlay" alt="7E Logo">
         </div>
 
-        <!-- Ô TEXTBOX ĐỂ SỬA ĐỊA CHỈ TRỰC TIẾP -->
+        <!-- Ô sửa địa chỉ trực tiếp -->
         <div class="input-group">
             <label class="input-label" for="addressInput">📍 Địa chỉ hiển thị trên ảnh:</label>
             <input type="text" id="addressInput" class="address-textbox" value="59 Trương Định P.Bến Thành TP.Hồ Chí Minh" placeholder="Nhập địa chỉ hoặc ghi chú ca làm việc...">
         </div>
 
-        <!-- MỚI: Ô TEXTBOX ĐỂ THAY ĐỔI GIỜ HOẶC ĐỂ TRỐNG -->
+        <!-- Ô sửa thời gian hoặc để trống -->
         <div class="input-group">
             <label class="input-label" for="timeInput">⏱️ Thời gian hiển thị (Để trống nếu dùng giờ thực):</label>
             <input type="text" id="timeInput" class="address-textbox" value="" placeholder="Để trống để tự động lấy giờ hiện tại...">
         </div>
 
-        <!-- Nút chụp hình mềm mại -->
-        <button class="btn btn-snap" id="snapBtn">📷 CHỤP VÀ TẢI ẢNH</button>
+        <!-- Cụm nút bấm hành động -->
+        <div class="actions-container">
+            <!-- Nút 1: Chụp từ Camera trực tiếp -->
+            <button class="btn btn-snap" id="snapBtn">📷 CHỤP VÀ TẢI ẢNH</button>
+            
+            <!-- Nút 2: Tải file ảnh có sẵn từ máy lên -->
+            <button class="btn btn-upload" onclick="document.getElementById('fileInput').click()">📁 ĐÓNG DẤU ẢNH CÓ SẴN</button>
+            <input type="file" id="fileInput" accept="image/*" style="display: none;">
+        </div>
     </div>
 </div>
 
 <canvas id="canvas"></canvas>
 
 <script>
-    // Quản lý giao diện Sáng/Tối độc lập
+    // Quản lý giao diện Sáng/Tối
     function toggleTheme() {
         const currentTheme = document.documentElement.getAttribute('data-theme');
         const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
@@ -280,7 +280,7 @@
         if (icon) icon.innerText = savedTheme === 'dark' ? '☀️' : '🌙';
     }
 
-    // Định dạng chuỗi thời gian camera hiện tại
+    // Lấy thời gian hiện tại định dạng chuẩn
     function getFormattedTime() {
         const now = new Date();
         const year = now.getFullYear();
@@ -292,6 +292,45 @@
         return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
     }
 
+    // Âm thanh màn trập camera (Web Audio API)
+    function playShutterSound() {
+        try {
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            if (!AudioContext) return;
+            const audioCtx = new AudioContext();
+            
+            const osc = audioCtx.createOscillator();
+            const oscGain = audioCtx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(580, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(60, audioCtx.currentTime + 0.05);
+            oscGain.gain.setValueAtTime(0.35, audioCtx.currentTime);
+            oscGain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.05);
+            osc.connect(oscGain);
+            oscGain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.05);
+
+            const bufferSize = audioCtx.sampleRate * 0.07;
+            const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+            const data = buffer.getChannelData(0);
+            for (let i = 0; i < bufferSize; i++) { data[i] = Math.random() * 2 - 1; }
+            const noise = audioCtx.createBufferSource();
+            noise.buffer = buffer;
+            const noiseFilter = audioCtx.createBiquadFilter();
+            noiseFilter.type = 'highpass';
+            noiseFilter.frequency.value = 1400;
+            const noiseGain = audioCtx.createGain();
+            noiseGain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+            noiseGain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.07);
+            noise.connect(noiseFilter);
+            noiseFilter.connect(noiseGain);
+            noiseGain.connect(audioCtx.destination);
+            noise.start();
+            noise.stop(audioCtx.currentTime + 0.07);
+        } catch (e) { console.log(e); }
+    }
+
     window.addEventListener('DOMContentLoaded', () => {
         initTheme();
 
@@ -301,49 +340,33 @@
         const timestampDiv = document.getElementById('timestamp');
         const addressDiv = document.getElementById('address');
         const addressInput = document.getElementById('addressInput');
-        const timeInput = document.getElementById('timeInput'); // Element ô nhập giờ mới
+        const timeInput = document.getElementById('timeInput');
         const snapBtn = document.getElementById('snapBtn');
+        const fileInput = document.getElementById('fileInput');
         const logoSource = document.getElementById('logoSource');
 
-        // Lắng nghe sự kiện sửa địa chỉ trực tiếp
+        // Đồng bộ dữ liệu hiển thị từ TextBox lên khung Viewfinder
         if (addressInput && addressDiv) {
             addressDiv.innerText = addressInput.value;
-            addressInput.addEventListener('input', () => {
-                addressDiv.innerText = addressInput.value;
-            });
+            addressInput.addEventListener('input', () => { addressDiv.innerText = addressInput.value; });
         }
 
-        // MỚI: Lắng nghe sự kiện sửa thời gian trực tiếp
         if (timeInput && timestampDiv) {
             timeInput.addEventListener('input', () => {
                 const userTime = timeInput.value.trim();
-                // Nếu người dùng nhập chữ, đóng băng đồng hồ và hiển thị chữ đó
-                if (userTime !== "") {
-                    timestampDiv.innerText = userTime;
-                } else {
-                    // Nếu người dùng xóa trống ô, quay lại lấy giờ thực tế luôn
-                    timestampDiv.innerText = getFormattedTime();
-                }
+                timestampDiv.innerText = userTime !== "" ? userTime : getFormattedTime();
             });
         }
 
-        // Khởi chạy vòng lặp đồng hồ thời gian thực (chỉ chạy khi ô nhập giờ đang TRỐNG)
+        // Vòng lặp đồng hồ thời gian thực
         if (timestampDiv) {
-            if (timeInput && timeInput.value.trim() !== "") {
-                timestampDiv.innerText = timeInput.value.trim();
-            } else {
-                timestampDiv.innerText = getFormattedTime();
-            }
-            
+            timestampDiv.innerText = (timeInput && timeInput.value.trim() !== "") ? timeInput.value.trim() : getFormattedTime();
             setInterval(() => {
-                // Chỉ tự động nhảy giây nếu ô nhập liệu Thời gian đang để trống
-                if (timeInput && timeInput.value.trim() === "") {
-                    timestampDiv.innerText = getFormattedTime();
-                }
+                if (timeInput && timeInput.value.trim() === "") { timestampDiv.innerText = getFormattedTime(); }
             }, 1000);
         }
 
-        // Đồng bộ tỷ lệ khung hình hiển thị (WYSIWYG)
+        // Tự co giãn khung camera theo thiết bị
         if (video && cameraWrapper) {
             video.addEventListener('loadedmetadata', () => {
                 if (video.videoWidth && video.videoHeight) {
@@ -352,107 +375,123 @@
             });
         }
 
-        // Kích hoạt luồng Camera chất lượng cao (yêu cầu độ phân giải Full HD / 4K lý tưởng)
+        // Khởi tạo luồng Camera trực tiếp
         async function initCamera() {
-            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                console.error("Môi trường không hỗ trợ MediaDevices.");
-                alert("⚠️ CẢNH BÁO: Ứng dụng cần chạy trên HTTPS hoặc Localhost để cấp quyền mở Camera.");
-                return;
-            }
-
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return;
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({
-                    video: { 
-                        facingMode: 'environment',
-                        width: { ideal: 3840 },  
-                        height: { ideal: 2160 }  
-                    },
+                    video: { facingMode: 'environment', width: { ideal: 3840 }, height: { ideal: 2160 } },
                     audio: false
                 });
                 if (video) video.srcObject = stream;
             } catch (err) {
-                console.error("Không thể kết nối camera độ phân giải cao: ", err);
                 try {
-                    const fallbackStream = await navigator.mediaDevices.getUserMedia({
-                        video: { facingMode: 'environment' },
-                        audio: false
-                    });
-                    if (video) video.srcObject = fallbackStream;
-                } catch (fallbackErr) {
-                    alert("❌ LỖI: Chưa cấp quyền camera hoặc thiết bị đang bận.");
-                }
+                    const fallback = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false });
+                    if (video) video.srcObject = fallback;
+                } catch (e) { console.log("Không mở được camera."); }
             }
         }
-
         initCamera();
 
-        // Xử lý logic vẽ và xuất ảnh chất lượng cao khi click nút Chụp
-        if (snapBtn && video && canvas) {
+        // MỚI: HÀM TRUNG GIAN DÙNG CHUNG ĐỂ IN DẤU LÊN ẢNH (DÙNG CHO CẢ CHỤP VÀ UPLOAD)
+        function drawWatermarkAndDownload(sourceElement, isVideoSource) {
+            const imgWidth = isVideoSource ? sourceElement.videoWidth : sourceElement.naturalWidth;
+            const imgHeight = isVideoSource ? sourceElement.videoHeight : sourceElement.naturalHeight;
+
+            if (!imgWidth || !imgHeight) {
+                alert("Hình ảnh chưa sẵn sàng xử lý.");
+                return;
+            }
+
+            // Phát tiếng âm thanh chụp ảnh
+            playShutterSound();
+
+            const ctx = canvas.getContext('2d');
+            canvas.width = imgWidth;
+            canvas.height = imgHeight;
+            
+            // 1. Vẽ ảnh gốc vào canvas
+            ctx.drawImage(sourceElement, 0, 0, canvas.width, canvas.height);
+            
+            // Tính toán tỷ lệ font chữ thông minh theo cạnh ngắn nhất của ảnh
+            const baseSize = Math.min(canvas.width, canvas.height);
+            const timeText = (timeInput && timeInput.value.trim() !== "") ? timeInput.value.trim() : getFormattedTime();
+            const activeAddress = addressInput ? addressInput.value : "";
+            
+            const fontSizeTime = Math.floor(baseSize * 0.055);
+            const fontSizeAddr = Math.floor(baseSize * 0.038);
+            const padding = Math.floor(baseSize * 0.04);
+            
+            ctx.strokeStyle = '#000000'; 
+            ctx.fillStyle = '#FFFFFF';   
+            ctx.lineJoin = 'round';
+            ctx.miterLimit = 2;
+
+            // 2. Vẽ dòng địa chỉ (Dưới cùng)
+            ctx.font = `bold ${fontSizeAddr}px 'Share Tech Mono', monospace`;
+            const addrY = canvas.height - padding;
+            ctx.lineWidth = Math.max(3, Math.floor(fontSizeAddr * 0.16));
+            ctx.strokeText(activeAddress, padding, addrY);
+            ctx.fillText(activeAddress, padding, addrY);
+
+            // 3. Vẽ dòng thời gian (Trên dòng địa chỉ)
+            ctx.font = `bold ${fontSizeTime}px 'Share Tech Mono', monospace`;
+            const timeY = addrY - fontSizeAddr - Math.floor(baseSize * 0.02);
+            ctx.lineWidth = Math.max(4, Math.floor(fontSizeTime * 0.16));
+            ctx.strokeText(timeText, padding, timeY);
+            ctx.fillText(timeText, padding, timeY);
+            
+            // 4. Vẽ Logo 7-Eleven góc trên bên phải
+            if (logoSource) {
+                const logoSize = Math.floor(baseSize * 0.13); 
+                const logoX = canvas.width - logoSize - padding;
+                const logoY = padding;
+                
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+                ctx.beginPath();
+                ctx.roundRect(logoX - 4, logoY - 4, logoSize + 8, logoSize + 8, Math.max(2, Math.floor(baseSize * 0.015)));
+                ctx.fill();
+                
+                ctx.drawImage(logoSource, logoX, logoY, logoSize, logoSize);
+            }
+            
+            // 5. Xuất ảnh và tự động tải về luôn
+            const dataURL = canvas.toDataURL('image/jpeg', 0.95);
+            const downloadLink = document.createElement('a');
+            downloadLink.download = isVideoSource ? `7E_Snap_${Date.now()}.jpg` : `7E_Watermarked_${Date.now()}.jpg`;
+            downloadLink.href = dataURL;
+            downloadLink.click();
+        }
+
+        // Sự kiện khi bấm nút Chụp ảnh trực tiếp từ camera
+        if (snapBtn && video) {
             snapBtn.addEventListener('click', () => {
                 if (!video.videoWidth) {
                     alert("Camera chưa sẵn sàng, vui lòng đợi trong giây lát.");
                     return;
                 }
+                drawWatermarkAndDownload(video, true);
+            });
+        }
 
-                const ctx = canvas.getContext('2d');
-                canvas.width = video.videoWidth;
-                canvas.height = video.videoHeight;
-                
-                // 1. Vẽ khung cảnh gốc từ camera
-                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-                
-                // Tính toán tỷ lệ kích thước dựa theo cạnh ngắn nhất
-                const baseSize = Math.min(canvas.width, canvas.height);
-                
-                // Quyết định chuỗi thời gian ghi lên ảnh: Ưu tiên ô Textbox nhập liệu trước, nếu trống thì dùng giờ thực
-                const timeText = (timeInput && timeInput.value.trim() !== "") ? timeInput.value.trim() : getFormattedTime();
-                const activeAddress = addressInput ? addressInput.value : "";
-                
-                const fontSizeTime = Math.floor(baseSize * 0.055);
-                const fontSizeAddr = Math.floor(baseSize * 0.038);
-                const padding = Math.floor(baseSize * 0.04);
-                
-                // Thiết lập thông số viền chữ chuyên nghiệp
-                ctx.strokeStyle = '#000000'; 
-                ctx.fillStyle = '#FFFFFF';   
-                ctx.lineJoin = 'round';
-                ctx.miterLimit = 2;
+        // MỚI: Sự kiện xử lý file ảnh khi người dùng chọn Tải ảnh lên từ bộ nhớ máy
+        if (fileInput) {
+            fileInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
 
-                // 2. Vẽ dòng địa chỉ (Dưới cùng)
-                ctx.font = `bold ${fontSizeAddr}px 'Share Tech Mono', monospace`;
-                const addrY = canvas.height - padding;
-                ctx.lineWidth = Math.max(3, Math.floor(fontSizeAddr * 0.16));
-                ctx.strokeText(activeAddress, padding, addrY);
-                ctx.fillText(activeAddress, padding, addrY);
-
-                // 3. Vẽ dòng thời gian (Phía trên dòng địa chỉ)
-                ctx.font = `bold ${fontSizeTime}px 'Share Tech Mono', monospace`;
-                const timeY = addrY - fontSizeAddr - Math.floor(baseSize * 0.02);
-                ctx.lineWidth = Math.max(4, Math.floor(fontSizeTime * 0.16));
-                ctx.strokeText(timeText, padding, timeY);
-                ctx.fillText(timeText, padding, timeY);
-                
-                // 4. Vẽ Logo 7-Eleven ở góc TRÊN bên phải ảnh
-                if (logoSource) {
-                    const logoSize = Math.floor(baseSize * 0.13); 
-                    const logoX = canvas.width - logoSize - padding;
-                    const logoY = padding;
-                    
-                    // Nền trắng bo góc làm bệ đỡ cho logo trên ảnh gốc
-                    ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
-                    ctx.beginPath();
-                    ctx.roundRect(logoX - 4, logoY - 4, logoSize + 8, logoSize + 8, Math.max(2, Math.floor(baseSize * 0.015)));
-                    ctx.fill();
-                    
-                    ctx.drawImage(logoSource, logoX, logoY, logoSize, logoSize);
-                }
-                
-                // 5. Xuất file ảnh JPEG chất lượng cao
-                const dataURL = canvas.toDataURL('image/jpeg', 0.95);
-                const downloadLink = document.createElement('a');
-                downloadLink.download = `7E_Snap_${Date.now()}.jpg`;
-                downloadLink.href = dataURL;
-                downloadLink.click();
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const img = new Image();
+                    img.onload = function() {
+                        // Kích hoạt hàm in dấu lên đối tượng ảnh vừa upload
+                        drawWatermarkAndDownload(img, false);
+                        // Reset lại input để có thể chọn tiếp cùng một ảnh nếu muốn
+                        fileInput.value = "";
+                    };
+                    img.src = event.target.result;
+                };
+                reader.readAsDataURL(file);
             });
         }
     });
