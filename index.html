@@ -91,7 +91,7 @@
 
         .app-body { padding: 20px; }
 
-        /* ĐƯỢC FIX: Bỏ thuộc tính tỷ lệ 4:3 cố định, để JS tự động tính toán theo camera thật */
+        /* Khung Viewfinder Camera tự động co giãn khớp tỷ lệ thực tế */
         .camera-wrapper {
             position: relative;
             width: 100%;
@@ -101,17 +101,17 @@
             border: 2px solid var(--border-color);
             box-shadow: inset 0 0 20px rgba(0,0,0,0.6);
             margin-bottom: 18px;
-            transition: aspect-ratio 0.15s ease-out; /* Tạo hiệu ứng mượt khi khớp khung hình */
+            transition: aspect-ratio 0.15s ease-out;
         }
 
         video {
             width: 100%;
             height: 100%;
-            object-fit: contain; /* Đổi sang contain hoặc cover đều khít 100% vì khung wrapper đã đồng bộ */
+            object-fit: contain;
             display: block;
         }
 
-        /* Lớp phủ thông tin chữ TRẮNG VIỀN ĐEN sắc nét chống chìm chữ */
+        /* Lớp phủ thông tin chữ TRẮNG VIỀN ĐEN sắc nét */
         .timestamp-overlay {
             position: absolute;
             bottom: 15px;
@@ -121,7 +121,6 @@
             color: #FFF; 
             pointer-events: none;
             line-height: 1.4;
-            /* Tạo viền đen bao quanh chữ bằng shadow đa hướng */
             text-shadow: 
                 -1.5px -1.5px 0 #000,  
                  1.5px -1.5px 0 #000,
@@ -163,7 +162,7 @@
             z-index: 5;
         }
 
-        /* KHU VỰC Ô NHẬP ĐỊA CHỈ TRỰC TIẾP */
+        /* KHU VỰC Ô NHẬP LIỆU TEXTBOX */
         .input-group {
             margin-bottom: 15px;
             text-align: left;
@@ -193,7 +192,7 @@
             box-shadow: 0 0 8px rgba(243, 112, 33, 0.15);
         }
 
-        /* Nút bấm bo góc mềm mại, chuyển động mượt */
+        /* Nút bấm chụp hình */
         .btn { 
             width: 100%; 
             padding: 14px; 
@@ -250,7 +249,13 @@
             <input type="text" id="addressInput" class="address-textbox" value="59 Trương Định P.Bến Thành TP.Hồ Chí Minh" placeholder="Nhập địa chỉ hoặc ghi chú ca làm việc...">
         </div>
 
-        <!-- Nút chụp hình mềm mại đồng nhất phom nút cũ -->
+        <!-- MỚI: Ô TEXTBOX ĐỂ THAY ĐỔI GIỜ HOẶC ĐỂ TRỐNG -->
+        <div class="input-group">
+            <label class="input-label" for="timeInput">⏱️ Thời gian hiển thị (Để trống nếu dùng giờ thực):</label>
+            <input type="text" id="timeInput" class="address-textbox" value="" placeholder="Để trống để tự động lấy giờ hiện tại...">
+        </div>
+
+        <!-- Nút chụp hình mềm mại -->
         <button class="btn btn-snap" id="snapBtn">📷 CHỤP VÀ TẢI ẢNH</button>
     </div>
 </div>
@@ -275,7 +280,7 @@
         if (icon) icon.innerText = savedTheme === 'dark' ? '☀️' : '🌙';
     }
 
-    // Định dạng chuỗi thời gian camera
+    // Định dạng chuỗi thời gian camera hiện tại
     function getFormattedTime() {
         const now = new Date();
         const year = now.getFullYear();
@@ -287,7 +292,6 @@
         return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
     }
 
-    // Đợi cấu trúc HTML tải xong hoàn toàn mới thực thi code xử lý
     window.addEventListener('DOMContentLoaded', () => {
         initTheme();
 
@@ -297,10 +301,11 @@
         const timestampDiv = document.getElementById('timestamp');
         const addressDiv = document.getElementById('address');
         const addressInput = document.getElementById('addressInput');
+        const timeInput = document.getElementById('timeInput'); // Element ô nhập giờ mới
         const snapBtn = document.getElementById('snapBtn');
         const logoSource = document.getElementById('logoSource');
 
-        // LẮNG NGHE SỰ KIỆN TEXTBOX: Cập nhật chữ trên màn hình live khi người dùng gõ
+        // Lắng nghe sự kiện sửa địa chỉ trực tiếp
         if (addressInput && addressDiv) {
             addressDiv.innerText = addressInput.value;
             addressInput.addEventListener('input', () => {
@@ -308,19 +313,40 @@
             });
         }
 
-        // Khởi chạy đồng hồ thời gian thực
+        // MỚI: Lắng nghe sự kiện sửa thời gian trực tiếp
+        if (timeInput && timestampDiv) {
+            timeInput.addEventListener('input', () => {
+                const userTime = timeInput.value.trim();
+                // Nếu người dùng nhập chữ, đóng băng đồng hồ và hiển thị chữ đó
+                if (userTime !== "") {
+                    timestampDiv.innerText = userTime;
+                } else {
+                    // Nếu người dùng xóa trống ô, quay lại lấy giờ thực tế luôn
+                    timestampDiv.innerText = getFormattedTime();
+                }
+            });
+        }
+
+        // Khởi chạy vòng lặp đồng hồ thời gian thực (chỉ chạy khi ô nhập giờ đang TRỐNG)
         if (timestampDiv) {
-            timestampDiv.innerText = getFormattedTime();
-            setInterval(() => {
+            if (timeInput && timeInput.value.trim() !== "") {
+                timestampDiv.innerText = timeInput.value.trim();
+            } else {
                 timestampDiv.innerText = getFormattedTime();
+            }
+            
+            setInterval(() => {
+                // Chỉ tự động nhảy giây nếu ô nhập liệu Thời gian đang để trống
+                if (timeInput && timeInput.value.trim() === "") {
+                    timestampDiv.innerText = getFormattedTime();
+                }
             }, 1000);
         }
 
-        // ĐƯỢC FIX: Lắng nghe sự kiện nạp luồng video để ép khung hiển thị khớp tỷ lệ camera thật
+        // Đồng bộ tỷ lệ khung hình hiển thị (WYSIWYG)
         if (video && cameraWrapper) {
             video.addEventListener('loadedmetadata', () => {
                 if (video.videoWidth && video.videoHeight) {
-                    // Cập nhật tỷ lệ aspect-ratio của khung ngắm bằng chính xác tỷ lệ của camera thiết bị
                     cameraWrapper.style.aspectRatio = `${video.videoWidth} / ${video.videoHeight}`;
                 }
             });
@@ -369,18 +395,17 @@
                 }
 
                 const ctx = canvas.getContext('2d');
-                
-                // Khởi tạo kích thước canvas bằng kích thước pixel gốc từ camera
                 canvas.width = video.videoWidth;
                 canvas.height = video.videoHeight;
                 
-                // 1. Vẽ khung cảnh gốc từ camera (Khớp 100% không lệch khung hình nhờ đồng bộ tỷ lệ)
+                // 1. Vẽ khung cảnh gốc từ camera
                 ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
                 
-                // Tính toán tỷ lệ font chữ dựa theo CẠNH NGẮN NHẤT để chữ không bị to/nhỏ bất thường giữa dọc và ngang
+                // Tính toán tỷ lệ kích thước dựa theo cạnh ngắn nhất
                 const baseSize = Math.min(canvas.width, canvas.height);
                 
-                const timeText = getFormattedTime();
+                // Quyết định chuỗi thời gian ghi lên ảnh: Ưu tiên ô Textbox nhập liệu trước, nếu trống thì dùng giờ thực
+                const timeText = (timeInput && timeInput.value.trim() !== "") ? timeInput.value.trim() : getFormattedTime();
                 const activeAddress = addressInput ? addressInput.value : "";
                 
                 const fontSizeTime = Math.floor(baseSize * 0.055);
@@ -407,13 +432,13 @@
                 ctx.strokeText(timeText, padding, timeY);
                 ctx.fillText(timeText, padding, timeY);
                 
-                // 4. Vẽ Logo 7-Eleven ở góc TRÊN bên phải ảnh (Khớp chính xác vị trí hiển thị)
+                // 4. Vẽ Logo 7-Eleven ở góc TRÊN bên phải ảnh
                 if (logoSource) {
                     const logoSize = Math.floor(baseSize * 0.13); 
                     const logoX = canvas.width - logoSize - padding;
                     const logoY = padding;
                     
-                    // Nền trắng bo góc nhẹ làm bệ đỡ cho logo trên ảnh gốc
+                    // Nền trắng bo góc làm bệ đỡ cho logo trên ảnh gốc
                     ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
                     ctx.beginPath();
                     ctx.roundRect(logoX - 4, logoY - 4, logoSize + 8, logoSize + 8, Math.max(2, Math.floor(baseSize * 0.015)));
