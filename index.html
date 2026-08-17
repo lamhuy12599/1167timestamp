@@ -1,4 +1,6 @@
-<!DOCTYPE html>
+# Create the updated HTML content with the requested changes.
+
+html_content = """<!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
@@ -127,8 +129,8 @@
                  1.5px  1.5px 0 #000,
                  0px    1.5px 0 #000,
                  0px   -1.5px 0 #000,
-                 1.5px   0px 0 #000,
-                -1.5px   0px 0 #000;
+                 1.5px  0px 0 #000,
+                -1.5px  0px 0 #000;
             z-index: 5;
         }
 
@@ -393,8 +395,8 @@
         }
         initCamera();
 
-        // MỚI: HÀM TRUNG GIAN DÙNG CHUNG ĐỂ IN DẤU LÊN ẢNH (DÙNG CHO CẢ CHỤP VÀ UPLOAD)
-        function drawWatermarkAndDownload(sourceElement, isVideoSource) {
+        // Cập nhật hàm xử lý: Thêm Web Share API để cải thiện việc lưu vào Thư viện ảnh
+        async function drawWatermarkAndDownload(sourceElement, isVideoSource) {
             const imgWidth = isVideoSource ? sourceElement.videoWidth : sourceElement.naturalWidth;
             const imgHeight = isVideoSource ? sourceElement.videoHeight : sourceElement.naturalHeight;
 
@@ -455,12 +457,36 @@
                 ctx.drawImage(logoSource, logoX, logoY, logoSize, logoSize);
             }
             
-            // 5. Xuất ảnh và tự động tải về luôn
-            const dataURL = canvas.toDataURL('image/jpeg', 0.95);
-            const downloadLink = document.createElement('a');
-            downloadLink.download = isVideoSource ? `7E_Snap_${Date.now()}.jpg` : `7E_Watermarked_${Date.now()}.jpg`;
-            downloadLink.href = dataURL;
-            downloadLink.click();
+            // 5. Xuất ảnh và xử lý lưu/chia sẻ
+            canvas.toBlob(async (blob) => {
+                if (!blob) return;
+                const fileName = isVideoSource ? `7E_Snap_${Date.now()}.jpg` : `7E_Watermarked_${Date.now()}.jpg`;
+                const file = new File([blob], fileName, { type: 'image/jpeg' });
+
+                // Ưu tiên dùng Web Share API nếu trình duyệt hỗ trợ (hỗ trợ lưu thẳng vào Photos trên điện thoại)
+                if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                    try {
+                        await navigator.share({
+                            files: [file],
+                            title: '7-Eleven Timestamp',
+                            text: 'Ảnh chấm công'
+                        });
+                        return;
+                    } catch (err) {
+                        // Nếu user hủy, vẫn thực hiện tải về dự phòng
+                    }
+                }
+
+                // Fallback: Tải về truyền thống
+                const dataURL = URL.createObjectURL(blob);
+                const downloadLink = document.createElement('a');
+                downloadLink.download = fileName;
+                downloadLink.href = dataURL;
+                document.body.appendChild(downloadLink);
+                downloadLink.click();
+                document.body.removeChild(downloadLink);
+                setTimeout(() => URL.revokeObjectURL(dataURL), 1000);
+            }, 'image/jpeg', 0.95);
         }
 
         // Sự kiện khi bấm nút Chụp ảnh trực tiếp từ camera
@@ -474,7 +500,7 @@
             });
         }
 
-        // MỚI: Sự kiện xử lý file ảnh khi người dùng chọn Tải ảnh lên từ bộ nhớ máy
+        // Sự kiện xử lý file ảnh khi người dùng chọn Tải ảnh lên từ bộ nhớ máy
         if (fileInput) {
             fileInput.addEventListener('change', (e) => {
                 const file = e.target.files[0];
@@ -484,9 +510,7 @@
                 reader.onload = function(event) {
                     const img = new Image();
                     img.onload = function() {
-                        // Kích hoạt hàm in dấu lên đối tượng ảnh vừa upload
                         drawWatermarkAndDownload(img, false);
-                        // Reset lại input để có thể chọn tiếp cùng một ảnh nếu muốn
                         fileInput.value = "";
                     };
                     img.src = event.target.result;
@@ -497,4 +521,7 @@
     });
 </script>
 </body>
-</html>
+</html>"""
+
+with open("camera_app_v2.html", "w", encoding="utf-8") as f:
+    f.write(html_content)
