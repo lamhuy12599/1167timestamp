@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>Camera Timestamp (Giờ thực + GPS thực)</title>
+    <title>Camera 7-Eleven</title>
 
     <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
 
@@ -79,7 +79,7 @@
             position: absolute;
             top: 0; left: 0; right: 0;
             height: 140px;
-            background: linear-gradient(to bottom, rgba(0,0,0,0.45), rgba(0,0,0,0));
+            background: linear-gradient(to bottom, rgba(0,0,0,0.55), rgba(0,0,0,0));
             pointer-events: none;
             z-index: 3;
         }
@@ -93,19 +93,12 @@
             box-shadow: var(--glass-shadow), inset 0 1px 0 rgba(255,255,255,0.5), inset 0 -1px 0 rgba(255,255,255,0.04);
             position: relative;
         }
-        .glass::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            border-radius: inherit;
-            background: linear-gradient(115deg, rgba(255,255,255,0.35) 0%, rgba(255,255,255,0) 28%, rgba(255,255,255,0) 72%, rgba(255,255,255,0.12) 100%);
-            pointer-events: none;
-        }
 
         .top-bar {
             position: absolute;
             top: 0; left: 0; right: 0;
-            z-index: 6;
+            z-index: 999; /* Tăng cực cao để không bị đè */
+            pointer-events: auto;
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -120,8 +113,8 @@
             border-radius: 999px;
             overflow: hidden;
         }
-        .brand-pill span { color: #fff; font-size: 12px; font-weight: 700; letter-spacing: 0.2px; position: relative; z-index: 1; text-shadow: 0 1px 3px rgba(0,0,0,0.35); }
-        .brand-pill .dot { width: 8px; height: 8px; border-radius: 50%; background: #2ecc71; position: relative; z-index: 1; flex-shrink: 0; }
+        .brand-pill span { color: #fff; font-size: 12px; font-weight: 700; letter-spacing: 0.2px; text-shadow: 0 1px 3px rgba(0,0,0,0.35); }
+        .brand-pill .dot { width: 8px; height: 8px; border-radius: 50%; background: #2ecc71; flex-shrink: 0; }
         .brand-pill .dot.err { background: #e74c3c; }
         .brand-pill .dot.pending { background: #f1c40f; animation: pulse 1.2s infinite; }
         @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.3;} }
@@ -138,86 +131,78 @@
             justify-content: center;
             cursor: pointer;
             flex-shrink: 0;
-            overflow: hidden;
             transition: transform 0.15s ease;
+            pointer-events: auto;
         }
-        .icon-btn > span { position: relative; z-index: 1; }
         .icon-btn:active { transform: scale(0.9); }
 
+        /* CĂN CHỈNH LẠI CHỮ: Nhỏ hơn và ép về góc trái */
         .timestamp-overlay {
             position: absolute;
-            bottom: calc(env(safe-area-inset-bottom) + 132px);
-            left: 16px;
-            right: 16px;
+            bottom: calc(env(safe-area-inset-bottom) + 120px);
+            left: 14px;
+            max-width: 80vw; /* Giới hạn để chữ không tràn hết màn hình */
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
             font-family: 'Share Tech Mono', monospace;
             color: #FFF;
             pointer-events: none;
-            line-height: 1.35;
+            line-height: 1.25;
             text-shadow:
-                -1.2px -1.2px 0 #000,
-                 1.2px -1.2px 0 #000,
-                -1.2px  1.2px 0 #000,
-                 1.2px  1.2px 0 #000,
-                 0px    1.2px 0 #000,
-                 0px   -1.2px 0 #000,
-                 1.2px  0px 0 #000,
-                -1.2px  0px 0 #000;
+                -1.2px -1.2px 0 #000, 1.2px -1.2px 0 #000,
+                -1.2px  1.2px 0 #000, 1.2px  1.2px 0 #000,
+                 0px    1.2px 0 #000, 0px   -1.2px 0 #000,
+                 1.2px  0px 0 #000, -1.2px  0px 0 #000;
             z-index: 5;
-            transition: bottom 0.2s ease, right 0.2s ease;
         }
 
-        #timestamp { font-size: 0.82rem; font-weight: bold; letter-spacing: 0.4px; }
-        #address { font-size: 0.62rem; font-weight: bold; margin-top: 2px; letter-spacing: 0.2px; word-wrap: break-word; }
-
-        .flash-overlay {
-            position: absolute;
-            inset: 0;
+        /* GIAO DIỆN LOGO 7-ELEVEN BÊN TRÁI MÀN HÌNH */
+        .ui-logo-box {
+            width: 46px;
+            height: 40px;
             background: #fff;
-            opacity: 0;
-            pointer-events: none;
-            z-index: 8;
+            border: 2px solid #008062;
+            border-radius: 4px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 6px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+            text-shadow: none; /* Reset text shadow cho logo */
         }
+        .ui-logo-box .seven {
+            color: #ed2939; font-size: 26px; font-weight: 900; 
+            line-height: 0.9; font-family: Arial, sans-serif; letter-spacing: -1px;
+        }
+        .ui-logo-box .eleven {
+            color: #008062; font-size: 7px; font-weight: 900; 
+            line-height: 1; font-family: Arial, sans-serif; margin-top: 1px;
+        }
+
+        #timestamp { font-size: 0.75rem; font-weight: bold; letter-spacing: 0.2px; }
+        #address { font-size: 0.55rem; font-weight: bold; margin-top: 3px; letter-spacing: 0.2px; word-wrap: break-word; }
+
+        .flash-overlay { position: absolute; inset: 0; background: #fff; opacity: 0; pointer-events: none; z-index: 8; }
 
         .controls-bar {
-            position: absolute;
-            left: 0; right: 0; bottom: 0;
-            z-index: 6;
-            display: flex;
-            flex-direction: row;
-            align-items: center;
-            justify-content: space-between;
+            position: absolute; left: 0; right: 0; bottom: 0; z-index: 6;
+            display: flex; flex-direction: row; align-items: center; justify-content: space-between;
             padding: 16px 34px calc(env(safe-area-inset-bottom) + 26px);
         }
 
         .shutter-btn {
-            width: 76px;
-            height: 76px;
-            border-radius: 50%;
-            cursor: pointer;
-            position: relative;
-            flex-shrink: 0;
-            padding: 5px;
+            width: 76px; height: 76px; border-radius: 50%; cursor: pointer; position: relative; flex-shrink: 0; padding: 5px;
             background: var(--glass-fill-strong);
             backdrop-filter: blur(18px) saturate(180%);
             -webkit-backdrop-filter: blur(18px) saturate(180%);
-            border: 1px solid var(--glass-border-soft);
-            border-top-color: var(--glass-border);
+            border: 1px solid var(--glass-border-soft); border-top-color: var(--glass-border);
             box-shadow: var(--glass-shadow), inset 0 1px 0 rgba(255,255,255,0.55);
             transition: transform 0.12s ease;
         }
-        .shutter-btn::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            border-radius: 50%;
-            background: linear-gradient(125deg, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0) 35%, rgba(255,255,255,0) 65%, rgba(255,255,255,0.15) 100%);
-            pointer-events: none;
-        }
         .shutter-btn::after {
-            content: '';
-            position: absolute;
-            inset: 5px;
-            border-radius: 50%;
+            content: ''; position: absolute; inset: 5px; border-radius: 50%;
             background: radial-gradient(circle at 32% 28%, #5aa, var(--brand-green) 60%, #005940 100%);
             box-shadow: inset 0 2px 3px rgba(255,255,255,0.5), inset 0 -3px 6px rgba(0,0,0,0.25);
             transition: transform 0.12s ease, border-radius 0.12s ease;
@@ -227,143 +212,51 @@
         .shutter-btn[disabled] { opacity: 0.5; pointer-events: none; filter: grayscale(1); }
 
         .thumb-btn {
-            width: 48px;
-            height: 48px;
-            border-radius: 16px;
-            color: #fff;
-            font-size: 19px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            flex-shrink: 0;
-            overflow: hidden;
-            transition: transform 0.15s ease;
+            width: 48px; height: 48px; border-radius: 16px; color: #fff; font-size: 19px;
+            display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; transition: transform 0.15s ease;
         }
-        .thumb-btn > span { position: relative; z-index: 1; filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3)); }
         .thumb-btn:active { transform: scale(0.9); }
-
         .ghost-slot { width: 48px; height: 48px; visibility: hidden; flex-shrink: 0; }
 
-        @media (orientation: landscape) {
-            .controls-bar {
-                left: auto; bottom: 0; top: 0; right: 0;
-                width: auto; height: 100%;
-                flex-direction: column;
-                justify-content: center;
-                align-items: center;
-                gap: 22px;
-                padding: 20px calc(env(safe-area-inset-right) + 22px) 20px 20px;
-            }
-            .timestamp-overlay {
-                bottom: calc(env(safe-area-inset-bottom) + 20px);
-                right: calc(env(safe-area-inset-right) + 128px);
-            }
-        }
-
         .sheet-backdrop {
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.35);
-            backdrop-filter: blur(2px);
-            -webkit-backdrop-filter: blur(2px);
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.25s ease;
-            z-index: 20;
+            position: fixed; inset: 0; background: rgba(0,0,0,0.4);
+            backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px);
+            opacity: 0; pointer-events: none; transition: opacity 0.25s ease; z-index: 1000;
         }
         .sheet-backdrop.show { opacity: 1; pointer-events: auto; }
 
         .settings-sheet {
-            position: fixed;
-            left: 10px; right: 10px; bottom: 0;
-            z-index: 21;
-            color: var(--text-main);
-            border-radius: 28px 28px 0 0;
-            padding: 10px 18px calc(env(safe-area-inset-bottom) + 18px);
-            max-height: 85vh;
-            overflow-y: auto;
-            background: var(--panel-fill);
-            backdrop-filter: blur(34px) saturate(190%);
-            -webkit-backdrop-filter: blur(34px) saturate(190%);
-            border: 1px solid var(--panel-border);
-            border-bottom: none;
+            position: fixed; left: 10px; right: 10px; bottom: 0; z-index: 1001;
+            color: var(--text-main); border-radius: 28px 28px 0 0; padding: 10px 18px calc(env(safe-area-inset-bottom) + 18px);
+            max-height: 85vh; overflow-y: auto; background: var(--panel-fill);
+            backdrop-filter: blur(34px) saturate(190%); -webkit-backdrop-filter: blur(34px) saturate(190%);
+            border: 1px solid var(--panel-border); border-bottom: none;
             box-shadow: 0 -16px 44px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.6);
-            transform: translateY(115%);
-            transition: transform 0.35s cubic-bezier(.32,.9,.4,1);
+            transform: translateY(115%); transition: transform 0.35s cubic-bezier(.32,.9,.4,1);
         }
         .settings-sheet.show { transform: translateY(0); }
 
         .sheet-handle { width: 38px; height: 5px; border-radius: 3px; background: var(--text-muted); opacity: 0.4; margin: 6px auto 14px; }
-
         .sheet-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
         .sheet-header h3 { color: var(--brand-green); font-size: 17px; font-weight: 800; }
         .close-btn {
-            width: 30px; height: 30px; border-radius: 50%;
-            border: 1px solid var(--glass-border-soft);
-            background: rgba(128,128,128,0.18);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            font-size: 15px; color: var(--text-muted); cursor: pointer;
-            display: flex; align-items: center; justify-content: center;
+            width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--glass-border-soft);
+            background: rgba(128,128,128,0.18); backdrop-filter: blur(10px);
+            font-size: 15px; color: var(--text-muted); cursor: pointer; display: flex; align-items: center; justify-content: center;
         }
 
-        .theme-row {
-            display: flex; align-items: center; justify-content: space-between;
-            padding: 10px 4px 18px; border-bottom: 1px solid var(--border-color); margin-bottom: 16px;
-        }
-        .theme-row span { font-size: 14px; font-weight: bold; }
-
-        .switch { position: relative; display: inline-block; width: 48px; height: 28px; flex-shrink: 0; }
-        .switch input { opacity: 0; width: 0; height: 0; }
-        .switch-track {
-            position: absolute; cursor: pointer; inset: 0;
-            background: rgba(128,128,128,0.28);
-            backdrop-filter: blur(6px);
-            border: 1px solid rgba(255,255,255,0.25);
-            border-radius: 26px;
-            transition: 0.25s;
-        }
-        .switch-track::before {
-            content: "";
-            position: absolute;
-            height: 22px; width: 22px; left: 2px; bottom: 2px;
-            background: linear-gradient(160deg, #ffffff, #e6e6e6);
-            border-radius: 50%;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.3), inset 0 1px 1px rgba(255,255,255,0.8);
-            transition: 0.25s;
-        }
-        .switch input:checked + .switch-track { background: rgba(0,128,98,0.55); border-color: rgba(255,255,255,0.4); }
-        .switch input:checked + .switch-track::before { transform: translateX(20px); }
-
-        /* Bổ sung style cho phần nhập liệu tuỳ chỉnh */
-        .input-group {
-            display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px;
-        }
-        .input-group label {
-            font-size: 13px; font-weight: bold; color: var(--text-main); margin-left: 4px;
-        }
+        .input-group { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+        .input-group label { font-size: 13px; font-weight: bold; margin-left: 4px; }
         .input-group input {
-            width: 100%; padding: 12px 14px; border-radius: 12px;
-            border: 1px solid var(--border-color);
-            background: rgba(128,128,128,0.08); color: var(--text-main);
-            font-size: 14px; outline: none; transition: border-color 0.2s;
+            width: 100%; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--border-color);
+            background: rgba(128,128,128,0.08); color: var(--text-main); font-size: 14px; outline: none; transition: border-color 0.2s;
         }
         .input-group input:focus { border-color: var(--brand-green); }
-        .input-group input::placeholder { color: var(--text-muted); opacity: 0.7; }
 
-        .status-row { display: flex; flex-direction: column; gap: 10px; margin-bottom: 6px; border-top: 1px solid var(--border-color); padding-top: 16px; }
-        .status-line {
-            display: flex; align-items: center; gap: 8px;
-            font-size: 13px; color: var(--text-muted);
-            padding: 10px 12px; border-radius: 12px;
-            background: rgba(128,128,128,0.10);
-        }
-        .status-line b { color: var(--text-main); font-weight: 700; }
+        .status-row { display: flex; flex-direction: column; gap: 10px; border-top: 1px solid var(--border-color); padding-top: 16px; margin-bottom: 6px; }
+        .status-line { display: flex; align-items: center; gap: 8px; font-size: 13px; padding: 10px 12px; border-radius: 12px; background: rgba(128,128,128,0.10); }
         .status-dot { width: 9px; height: 9px; border-radius: 50%; background: #2ecc71; flex-shrink: 0; }
-        .status-dot.err { background: #e74c3c; }
         .status-dot.pending { background: #f1c40f; animation: pulse 1.2s infinite; }
-
         canvas { display: none; }
     </style>
 </head>
@@ -371,7 +264,6 @@
 
 <div class="app-container" id="cameraWrapper">
     <video id="video" autoplay playsinline muted></video>
-
     <div class="top-gradient"></div>
 
     <div class="top-bar">
@@ -379,10 +271,16 @@
             <span class="dot pending" id="gpsDot"></span>
             <span id="brandLabel">Đang lấy vị trí…</span>
         </div>
+        <!-- Thêm id cứng và sự kiện trực tiếp để chống kẹt chạm trên iOS -->
         <button class="icon-btn glass" id="settingsBtn" aria-label="Cài đặt"><span>⚙️</span></button>
     </div>
 
     <div class="timestamp-overlay">
+        <!-- Logo 7-Eleven góc trái -->
+        <div class="ui-logo-box">
+            <div class="seven">7</div>
+            <div class="eleven">ELEVEn</div>
+        </div>
         <div id="timestamp">--:--:--</div>
         <div id="address">Đang lấy vị trí GPS…</div>
     </div>
@@ -407,23 +305,14 @@
         <button class="close-btn" id="closeSettings" aria-label="Đóng">✕</button>
     </div>
 
-    <div class="theme-row">
-        <span>Giao diện tối</span>
-        <label class="switch">
-            <input type="checkbox" id="themeSwitch">
-            <span class="switch-track"></span>
-        </label>
-    </div>
-
-    <!-- Khu vực thêm mới: Input tuỳ chỉnh thời gian và địa điểm -->
     <div class="input-group">
         <label>Thời gian (Tuỳ chỉnh):</label>
-        <input type="text" id="customTimeInput" placeholder="VD: 2026-09-15 08:30:00 (Để trống tự động lấy giờ thực)">
+        <input type="text" id="customTimeInput" placeholder="VD: 2026-09-15 08:30:00 (Để trống lấy tự động)">
     </div>
     
     <div class="input-group">
         <label>Địa điểm (Tuỳ chỉnh):</label>
-        <input type="text" id="customAddressInput" placeholder="Nhập địa chỉ muốn thay đổi... (Để trống tự động lấy GPS)">
+        <input type="text" id="customAddressInput" placeholder="Nhập địa chỉ muốn thay đổi... (Để trống lấy tự động)">
     </div>
 
     <div class="status-row">
@@ -433,19 +322,6 @@
 </div>
 
 <script>
-    function toggleTheme(isDark) {
-        const newTheme = isDark ? 'dark' : 'light';
-        document.documentElement.setAttribute('data-theme', newTheme);
-        localStorage.setItem('appTheme', newTheme);
-    }
-
-    function initTheme() {
-        const savedTheme = localStorage.getItem('appTheme') || 'light';
-        document.documentElement.setAttribute('data-theme', savedTheme);
-        const themeSwitch = document.getElementById('themeSwitch');
-        if (themeSwitch) themeSwitch.checked = savedTheme === 'dark';
-    }
-
     function getFormattedTime() {
         const now = new Date();
         const year = now.getFullYear();
@@ -457,46 +333,8 @@
         return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
     }
 
-    function playShutterSound() {
-        try {
-            const AudioContext = window.AudioContext || window.webkitAudioContext;
-            if (!AudioContext) return;
-            const audioCtx = new AudioContext();
-            const osc = audioCtx.createOscillator();
-            const oscGain = audioCtx.createGain();
-            osc.type = 'triangle';
-            osc.frequency.setValueAtTime(580, audioCtx.currentTime);
-            osc.frequency.exponentialRampToValueAtTime(60, audioCtx.currentTime + 0.05);
-            oscGain.gain.setValueAtTime(0.35, audioCtx.currentTime);
-            oscGain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.05);
-            osc.connect(oscGain);
-            oscGain.connect(audioCtx.destination);
-            osc.start();
-            osc.stop(audioCtx.currentTime + 0.05);
-
-            const bufferSize = audioCtx.sampleRate * 0.07;
-            const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
-            const data = buffer.getChannelData(0);
-            for (let i = 0; i < bufferSize; i++) { data[i] = Math.random() * 2 - 1; }
-            const noise = audioCtx.createBufferSource();
-            noise.buffer = buffer;
-            const noiseFilter = audioCtx.createBiquadFilter();
-            noiseFilter.type = 'highpass';
-            noiseFilter.frequency.value = 1400;
-            const noiseGain = audioCtx.createGain();
-            noiseGain.gain.setValueAtTime(0.12, audioCtx.currentTime);
-            noiseGain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.07);
-            noise.connect(noiseFilter);
-            noiseFilter.connect(noiseGain);
-            noiseGain.connect(audioCtx.destination);
-            noise.start();
-            noise.stop(audioCtx.currentTime + 0.07);
-        } catch (e) { console.log(e); }
-    }
-
     function triggerFlash() {
         const flash = document.getElementById('flashOverlay');
-        if (!flash) return;
         flash.style.transition = 'none';
         flash.style.opacity = '0.85';
         requestAnimationFrame(() => {
@@ -506,8 +344,6 @@
     }
 
     window.addEventListener('DOMContentLoaded', () => {
-        initTheme();
-
         const video = document.getElementById('video');
         const canvas = document.getElementById('canvas');
         const timestampDiv = document.getElementById('timestamp');
@@ -515,51 +351,50 @@
         const snapBtn = document.getElementById('snapBtn');
         const fileInput = document.getElementById('fileInput');
         const uploadTrigger = document.getElementById('uploadTrigger');
-        const themeSwitch = document.getElementById('themeSwitch');
 
-        const brandLabel = document.getElementById('brandLabel');
         const gpsDot = document.getElementById('gpsDot');
         const gpsStatusDot = document.getElementById('gpsStatusDot');
         const gpsStatus = document.getElementById('gpsStatus');
+        const brandLabel = document.getElementById('brandLabel');
 
         const settingsBtn = document.getElementById('settingsBtn');
         const settingsSheet = document.getElementById('settingsSheet');
         const sheetBackdrop = document.getElementById('sheetBackdrop');
         const closeSettings = document.getElementById('closeSettings');
         
-        // Element nhận dữ liệu tuỳ chỉnh
         const customTimeInput = document.getElementById('customTimeInput');
         const customAddressInput = document.getElementById('customAddressInput');
 
         let currentAddress = null;
         let currentCoords = null;
 
-        function openSettings() { settingsSheet.classList.add('show'); sheetBackdrop.classList.add('show'); }
-        function closeSettingsSheet() { settingsSheet.classList.remove('show'); sheetBackdrop.classList.remove('show'); }
-        if (settingsBtn) settingsBtn.addEventListener('click', openSettings);
-        if (closeSettings) closeSettings.addEventListener('click', closeSettingsSheet);
+        // XỬ LÝ NÚT CÀI ĐẶT CHẮC CHẮN HOẠT ĐỘNG
+        function openSettings(e) { 
+            if(e) e.preventDefault(); 
+            settingsSheet.classList.add('show'); 
+            sheetBackdrop.classList.add('show'); 
+        }
+        function closeSettingsSheet(e) { 
+            if(e) e.preventDefault();
+            settingsSheet.classList.remove('show'); 
+            sheetBackdrop.classList.remove('show'); 
+        }
+
+        if (settingsBtn) {
+            settingsBtn.addEventListener('click', openSettings);
+            // Thêm touchstart để giải quyết lỗi không phản hồi trên Safari iOS
+            settingsBtn.addEventListener('touchstart', openSettings, {passive: false});
+        }
+        if (closeSettings) {
+            closeSettings.addEventListener('click', closeSettingsSheet);
+            closeSettings.addEventListener('touchstart', closeSettingsSheet, {passive: false});
+        }
         if (sheetBackdrop) sheetBackdrop.addEventListener('click', closeSettingsSheet);
-        if (themeSwitch) themeSwitch.addEventListener('change', () => toggleTheme(themeSwitch.checked));
 
-        // Hàm lấy Giờ sẽ đóng dấu (Ưu tiên ô nhập tay, nếu trống thì lấy giờ thật)
-        function getActiveTime() {
-            return customTimeInput.value.trim() || getFormattedTime();
-        }
+        function getActiveTime() { return customTimeInput.value.trim() || getFormattedTime(); }
 
-        // Lặp thời gian để cập nhật lên UI
-        if (timestampDiv) {
-            timestampDiv.innerText = getActiveTime();
-            setInterval(() => { timestampDiv.innerText = getActiveTime(); }, 1000);
-        }
+        setInterval(() => { timestampDiv.innerText = getActiveTime(); }, 1000);
 
-        // Lắng nghe thay đổi khi người dùng nhập Giờ tuỳ chỉnh
-        customTimeInput.addEventListener('input', () => {
-            const val = customTimeInput.value.trim();
-            document.getElementById('timeStatus').innerText = val ? 'Tuỳ chỉnh thủ công' : 'Hệ thống (Tự động)';
-            timestampDiv.innerText = getActiveTime();
-        });
-
-        // Lắng nghe thay đổi khi người dùng nhập Địa điểm tuỳ chỉnh
         customAddressInput.addEventListener('input', () => {
             const customVal = customAddressInput.value.trim();
             if (customVal) {
@@ -567,203 +402,146 @@
                 gpsStatusDot.className = 'status-dot';
                 addressDiv.innerText = customVal;
                 snapBtn.removeAttribute('disabled');
-            } else {
-                if (currentAddress) {
-                    gpsStatus.innerText = 'GPS thực tế';
-                    gpsStatusDot.className = 'status-dot';
-                    addressDiv.innerText = `${currentAddress} (${currentCoords.lat.toFixed(5)}, ${currentCoords.lon.toFixed(5)})`;
-                    snapBtn.removeAttribute('disabled');
-                } else {
-                    gpsStatus.innerText = 'Đang xác định qua GPS…';
-                    gpsStatusDot.className = 'status-dot pending';
-                    addressDiv.innerText = 'Đang lấy vị trí GPS…';
-                    snapBtn.setAttribute('disabled', 'true');
-                }
+            } else if (currentAddress) {
+                gpsStatus.innerText = 'GPS thực tế';
+                gpsStatusDot.className = 'status-dot';
+                addressDiv.innerText = `${currentAddress} (${currentCoords.lat.toFixed(5)}, ${currentCoords.lon.toFixed(5)})`;
+                snapBtn.removeAttribute('disabled');
             }
         });
 
-        function setGpsError(msg) {
-            gpsDot.className = 'dot err';
-            brandLabel.innerText = 'Không lấy được vị trí';
+        // Hàm vẽ logo 7-11 bằng code (không bao giờ bị lỗi ảnh)
+        function draw7ElevenLogo(ctx, x, y, size) {
+            const width = size;
+            const height = size * 0.88;
+            ctx.save();
+            ctx.shadowColor = 'rgba(0,0,0,0.4)';
+            ctx.shadowBlur = 8;
             
-            // Chỉ cập nhật lỗi nếu người dùng không dùng định vị tuỳ chỉnh
-            if (!customAddressInput.value.trim()) {
-                gpsStatusDot.className = 'status-dot err';
-                gpsStatus.innerText = msg;
-                addressDiv.innerText = msg;
-                snapBtn.setAttribute('disabled', 'true');
+            ctx.fillStyle = '#ffffff';
+            if (ctx.roundRect) {
+                ctx.beginPath();
+                ctx.roundRect(x, y, width, height, size * 0.08);
+                ctx.fill();
+            } else {
+                ctx.fillRect(x, y, width, height);
             }
+            ctx.shadowBlur = 0;
+            
+            ctx.strokeStyle = '#008062';
+            ctx.lineWidth = Math.max(2, size * 0.04);
+            if (ctx.roundRect) ctx.stroke(); else ctx.strokeRect(x, y, width, height);
+            
+            ctx.fillStyle = '#ed2939';
+            ctx.font = `900 ${size * 0.65}px Arial, sans-serif`;
+            ctx.textAlign = 'center';
+            ctx.fillText('7', x + width * 0.5, y + height * 0.68);
+            
+            ctx.fillStyle = '#008062';
+            ctx.font = `900 ${size * 0.17}px Arial, sans-serif`;
+            ctx.fillText('ELEVEn', x + width * 0.5, y + height * 0.88);
+            ctx.restore();
+            return height;
         }
-
-        function setGpsSuccess(address, lat, lon) {
-            currentAddress = address;
-            currentCoords = { lat, lon };
-            gpsDot.className = 'dot';
-            brandLabel.innerText = address;
-
-            // Nếu người dùng không nhập tay địa chỉ thì ưu tiên hiển thị GPS thật
-            if (!customAddressInput.value.trim()) {
-                gpsStatusDot.className = 'status-dot';
-                gpsStatus.innerText = 'GPS thực tế';
-                addressDiv.innerText = `${address} (${lat.toFixed(5)}, ${lon.toFixed(5)})`;
-                snapBtn.removeAttribute('disabled');
-            }
-        }
-
-        async function reverseGeocode(lat, lon) {
-            try {
-                const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}&accept-language=vi`;
-                const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
-                const data = await res.json();
-                return data && data.display_name ? data.display_name : `${lat.toFixed(5)}, ${lon.toFixed(5)}`;
-            } catch (e) {
-                return `${lat.toFixed(5)}, ${lon.toFixed(5)}`;
-            }
-        }
-
-        function initGPS() {
-            if (!navigator.geolocation) {
-                setGpsError('Thiết bị không hỗ trợ GPS');
-                return;
-            }
-            navigator.geolocation.watchPosition(
-                async (pos) => {
-                    const { latitude, longitude } = pos.coords;
-                    const address = await reverseGeocode(latitude, longitude);
-                    setGpsSuccess(address, latitude, longitude);
-                },
-                (err) => {
-                    setGpsError('Cần cấp quyền truy cập vị trí để chụp ảnh');
-                },
-                { enableHighAccuracy: true, maximumAge: 10000, timeout: 20000 }
-            );
-        }
-        initGPS();
-
-        async function initCamera() {
-            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return;
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({
-                    video: { facingMode: 'environment', width: { ideal: 4096 }, height: { ideal: 2304 } },
-                    audio: false
-                });
-                if (video) video.srcObject = stream;
-            } catch (err) {
-                try {
-                    const fallback = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false });
-                    if (video) video.srcObject = fallback;
-                } catch (e) { console.log("Không mở được camera."); }
-            }
-        }
-        initCamera();
 
         async function drawWatermarkAndDownload(sourceElement, isVideoSource) {
-            // Lấy địa điểm tuỳ chỉnh, nếu không có thì lấy GPS thực tế
             const finalAddress = customAddressInput.value.trim() || currentAddress;
+            if (!finalAddress) return alert("Chưa có GPS. Vui lòng đợi hoặc nhập tay.");
 
-            if (!finalAddress) {
-                alert("Chưa xác định được vị trí. Vui lòng đợi GPS hoặc nhập địa chỉ thủ công trong Cài đặt.");
-                return;
-            }
-
-            const imgWidth = isVideoSource ? sourceElement.videoWidth : sourceElement.naturalWidth;
-            const imgHeight = isVideoSource ? sourceElement.videoHeight : sourceElement.naturalHeight;
-
-            if (!imgWidth || !imgHeight) {
-                alert("Hình ảnh chưa sẵn sàng xử lý.");
-                return;
-            }
-
-            playShutterSound();
-
+            const imgW = isVideoSource ? sourceElement.videoWidth : sourceElement.naturalWidth;
+            const imgH = isVideoSource ? sourceElement.videoHeight : sourceElement.naturalHeight;
             const ctx = canvas.getContext('2d');
-            canvas.width = imgWidth;
-            canvas.height = imgHeight;
-            ctx.imageSmoothingEnabled = true;
-            ctx.imageSmoothingQuality = 'high';
-
+            canvas.width = imgW; canvas.height = imgH;
             ctx.drawImage(sourceElement, 0, 0, canvas.width, canvas.height);
 
             const baseSize = Math.min(canvas.width, canvas.height);
             
-            // Lấy giờ tuỳ chỉnh hoặc giờ thực thế ngay lúc bấm chụp
-            const finalTimeText = getActiveTime(); 
+            // THU NHỎ KÍCH THƯỚC CHỮ XUỐNG CÒN KHOẢNG 60% SO VỚI BẢN CŨ
+            const padding = Math.floor(baseSize * 0.025);
+            const fontSizeTime = Math.floor(baseSize * 0.022); 
+            const fontSizeAddr = Math.floor(baseSize * 0.015);
+            const finalTimeText = getActiveTime();
 
-            const fontSizeTime = Math.floor(baseSize * 0.036);
-            const fontSizeAddr = Math.floor(baseSize * 0.024);
-            const padding = Math.floor(baseSize * 0.035);
+            ctx.strokeStyle = '#000000'; ctx.fillStyle = '#FFFFFF';
+            ctx.lineJoin = 'round'; ctx.miterLimit = 2;
 
-            ctx.strokeStyle = '#000000';
-            ctx.fillStyle = '#FFFFFF';
-            ctx.lineJoin = 'round';
-            ctx.miterLimit = 2;
+            // Tính toán toạ độ Y từ dưới lên (ép góc trái)
+            const addrY = canvas.height - padding;
+            const timeY = addrY - fontSizeAddr - Math.floor(baseSize * 0.012);
+            
+            // Vẽ Logo
+            const logoSize = Math.floor(baseSize * 0.1); // Logo chiếm 10% chiều ngang
+            const logoHeight = logoSize * 0.88;
+            const logoY = timeY - fontSizeTime - logoHeight - Math.floor(baseSize * 0.012);
+            
+            draw7ElevenLogo(ctx, padding, logoY, logoSize);
+
+            // Vẽ Chữ (Text)
+            ctx.textAlign = 'left';
 
             ctx.font = `bold ${fontSizeAddr}px 'Share Tech Mono', monospace`;
-            const addrY = canvas.height - padding;
-            ctx.lineWidth = Math.max(2, Math.floor(fontSizeAddr * 0.14));
+            ctx.lineWidth = Math.max(2, Math.floor(fontSizeAddr * 0.15));
             ctx.strokeText(finalAddress, padding, addrY);
             ctx.fillText(finalAddress, padding, addrY);
 
             ctx.font = `bold ${fontSizeTime}px 'Share Tech Mono', monospace`;
-            const timeY = addrY - fontSizeAddr - Math.floor(baseSize * 0.018);
-            ctx.lineWidth = Math.max(3, Math.floor(fontSizeTime * 0.14));
+            ctx.lineWidth = Math.max(3, Math.floor(fontSizeTime * 0.15));
             ctx.strokeText(finalTimeText, padding, timeY);
             ctx.fillText(finalTimeText, padding, timeY);
 
-            canvas.toBlob(async (blob) => {
+            canvas.toBlob((blob) => {
                 if (!blob) return;
-                const fileName = isVideoSource ? `Snap_${Date.now()}.jpg` : `Watermarked_${Date.now()}.jpg`;
+                const fileName = `7Eleven_Snap_${Date.now()}.jpg`;
                 const file = new File([blob], fileName, { type: 'image/jpeg' });
-
                 if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                    try {
-                        await navigator.share({ files: [file], title: 'Ảnh chấm công', text: 'Ảnh chấm công' });
-                        return;
-                    } catch (err) { /* Bỏ qua nếu lỗi share để gọi tải xuống fallback */ }
+                    navigator.share({ files: [file] }).catch(()=>{});
+                } else {
+                    const dl = document.createElement('a'); dl.download = fileName;
+                    dl.href = URL.createObjectURL(blob); dl.click();
                 }
-
-                const dataURL = URL.createObjectURL(blob);
-                const downloadLink = document.createElement('a');
-                downloadLink.download = fileName;
-                downloadLink.href = dataURL;
-                document.body.appendChild(downloadLink);
-                downloadLink.click();
-                document.body.removeChild(downloadLink);
-                setTimeout(() => URL.revokeObjectURL(dataURL), 1000);
             }, 'image/jpeg', 0.98);
         }
 
-        if (snapBtn && video) {
-            snapBtn.addEventListener('click', () => {
-                if (!video.videoWidth) {
-                    alert("Camera chưa sẵn sàng, vui lòng đợi trong giây lát.");
-                    return;
-                }
-                triggerFlash();
-                drawWatermarkAndDownload(video, true);
-            });
+        function initGPS() {
+            navigator.geolocation.watchPosition(
+                async (pos) => {
+                    const { latitude, longitude } = pos.coords;
+                    try {
+                        const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${latitude}&lon=${longitude}&accept-language=vi`;
+                        const res = await fetch(url); const data = await res.json();
+                        currentAddress = data.display_name || `${latitude.toFixed(5)}, ${longitude.toFixed(5)}`;
+                    } catch(e) { currentAddress = `${latitude.toFixed(5)}, ${longitude.toFixed(5)}`; }
+                    
+                    currentCoords = { lat: latitude, lon: longitude };
+                    brandLabel.innerText = currentAddress; gpsDot.className = 'dot';
+                    
+                    if (!customAddressInput.value.trim()) {
+                        gpsStatusDot.className = 'status-dot'; gpsStatus.innerText = 'GPS thực tế';
+                        addressDiv.innerText = `${currentAddress} (${latitude.toFixed(5)}, ${longitude.toFixed(5)})`;
+                        snapBtn.removeAttribute('disabled');
+                    }
+                },
+                () => { if(!customAddressInput.value) snapBtn.setAttribute('disabled', 'true'); },
+                { enableHighAccuracy: true }
+            );
         }
 
-        if (uploadTrigger && fileInput) {
-            uploadTrigger.addEventListener('click', () => fileInput.click());
+        async function initCamera() {
+            try {
+                video.srcObject = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment', width: { ideal: 4096 } } });
+            } catch (err) {}
         }
+        
+        initGPS(); initCamera();
 
-        if (fileInput) {
-            fileInput.addEventListener('change', (e) => {
-                const file = e.target.files[0];
-                if (!file) return;
-                const reader = new FileReader();
-                reader.onload = function(event) {
-                    const img = new Image();
-                    img.onload = function() {
-                        drawWatermarkAndDownload(img, false);
-                        fileInput.value = "";
-                    };
-                    img.src = event.target.result;
-                };
-                reader.readAsDataURL(file);
-            });
-        }
+        if (snapBtn) snapBtn.addEventListener('click', () => { triggerFlash(); drawWatermarkAndDownload(video, true); });
+        if (uploadTrigger) uploadTrigger.addEventListener('click', () => fileInput.click());
+        if (fileInput) fileInput.addEventListener('change', (e) => {
+            const f = e.target.files[0]; if (!f) return;
+            const r = new FileReader();
+            r.onload = (ev) => { const img = new Image(); img.onload = () => drawWatermarkAndDownload(img, false); img.src = ev.target.result; };
+            r.readAsDataURL(f);
+        });
     });
 </script>
 </body>
