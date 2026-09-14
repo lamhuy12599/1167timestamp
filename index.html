@@ -5,11 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>Camera 7-Eleven</title>
+    <title>59 Trương Định - Camera Timestamp</title>
 
+    <!-- Icon 7-Eleven trên Tab trình duyệt -->
+    <link class="app-icon" rel="icon" href="https://upload.wikimedia.org/wikipedia/commons/thumb/4/40/7-eleven_logo.svg/1280px-7-eleven_logo.svg.png">
+
+    <!-- Nhúng font chữ phong cách kỹ thuật số cho lớp hiển thị thời gian -->
     <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
 
     <style>
+        /* CSS Reset & Font */
         * {
             box-sizing: border-box;
             margin: 0;
@@ -18,21 +23,27 @@
             -webkit-tap-highlight-color: transparent;
         }
 
+        /* BẢNG BIẾN MÀU SẮC CHUẨN 7-ELEVEN + BIẾN KÍNH LỎNG (Liquid Glass) */
         :root {
-            --brand-green: #008062;
-            --brand-orange: #F37021;
+            --7e-green: #008062;
+            --7e-orange: #F37021;
+            --7e-red: #E2231A;
             --bg-main: #F4F5F7;
             --bg-card: #ffffff;
             --text-main: #333;
             --text-muted: #666;
             --border-color: rgba(0,0,0,0.08);
+            --input-border: #ccc;
 
+            /* Vật liệu kính lỏng — lớp control nổi trên nền camera (luôn sáng, tương phản trên nền tối) */
             --glass-fill: rgba(255,255,255,0.14);
             --glass-fill-strong: rgba(255,255,255,0.22);
             --glass-border: rgba(255,255,255,0.4);
             --glass-border-soft: rgba(255,255,255,0.16);
+            --glass-shine: rgba(255,255,255,0.85);
             --glass-shadow: 0 8px 28px rgba(0,0,0,0.35), 0 1px 2px rgba(0,0,0,0.2);
 
+            /* Vật liệu kính lỏng dày — dùng cho tấm cài đặt lớn */
             --panel-fill: rgba(255,255,255,0.62);
             --panel-border: rgba(255,255,255,0.65);
         }
@@ -43,6 +54,8 @@
             --text-main: #f1f1f1;
             --text-muted: #aaa;
             --border-color: rgba(255,255,255,0.1);
+            --input-border: #555;
+
             --panel-fill: rgba(30,30,34,0.6);
             --panel-border: rgba(255,255,255,0.16);
         }
@@ -54,8 +67,11 @@
             background: #000;
         }
 
-        body { color: var(--text-main); }
+        body {
+            color: var(--text-main);
+        }
 
+        /* ============ KHUNG CAMERA TOÀN MÀN HÌNH ============ */
         .app-container {
             position: fixed;
             inset: 0;
@@ -75,15 +91,19 @@
             display: block;
         }
 
+        /* Dải mờ trên cùng giúp icon dễ đọc trên nền camera sáng */
         .top-gradient {
             position: absolute;
             top: 0; left: 0; right: 0;
             height: 140px;
-            background: linear-gradient(to bottom, rgba(0,0,0,0.55), rgba(0,0,0,0));
+            background: linear-gradient(to bottom, rgba(0,0,0,0.45), rgba(0,0,0,0));
             pointer-events: none;
             z-index: 3;
         }
 
+        /* ============ VẬT LIỆU KÍNH LỎNG DÙNG CHUNG ============ */
+        /* Mọi control nổi (pill thương hiệu, nút icon, nút thumbnail) dùng chung "chất liệu" kính:
+           nền mờ + backdrop-filter khúc xạ nền phía sau + viền sáng phía trên mô phỏng ánh phản chiếu */
         .glass {
             background: var(--glass-fill);
             backdrop-filter: blur(22px) saturate(180%);
@@ -93,12 +113,21 @@
             box-shadow: var(--glass-shadow), inset 0 1px 0 rgba(255,255,255,0.5), inset 0 -1px 0 rgba(255,255,255,0.04);
             position: relative;
         }
+        /* Vệt sáng khúc xạ chạy chéo phía trên mỗi mặt kính — mô phỏng "lensing" của Liquid Glass */
+        .glass::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            background: linear-gradient(115deg, rgba(255,255,255,0.35) 0%, rgba(255,255,255,0) 28%, rgba(255,255,255,0) 72%, rgba(255,255,255,0.12) 100%);
+            pointer-events: none;
+        }
 
+        /* Thanh trên cùng: thương hiệu + nút cài đặt */
         .top-bar {
             position: absolute;
             top: 0; left: 0; right: 0;
-            z-index: 9999; /* Ưu tiên cao nhất để không bị kẹt cảm ứng */
-            pointer-events: auto;
+            z-index: 6;
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -106,132 +135,314 @@
         }
 
         .brand-pill {
-            display: flex; align-items: center; gap: 8px;
-            padding: 5px 16px 5px 6px; border-radius: 999px; overflow: hidden;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 5px 16px 5px 6px;
+            border-radius: 999px;
+            overflow: hidden;
         }
-        .brand-pill span { color: #fff; font-size: 12px; font-weight: 700; letter-spacing: 0.2px; text-shadow: 0 1px 3px rgba(0,0,0,0.35); }
-        .brand-pill .dot { width: 8px; height: 8px; border-radius: 50%; background: #2ecc71; flex-shrink: 0; }
-        .brand-pill .dot.err { background: #e74c3c; }
-        .brand-pill .dot.pending { background: #f1c40f; animation: pulse 1.2s infinite; }
-        @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.3;} }
+        .brand-pill img { height: 22px; width: auto; display: block; position: relative; z-index: 1; filter: drop-shadow(0 1px 1px rgba(0,0,0,0.2)); }
+        .brand-pill span { color: #fff; font-size: 13px; font-weight: 800; letter-spacing: 0.2px; position: relative; z-index: 1; text-shadow: 0 1px 3px rgba(0,0,0,0.35); }
 
         .icon-btn {
-            width: 44px; height: 44px; border-radius: 50%; border: none;
-            color: #fff; font-size: 19px; display: flex; align-items: center; justify-content: center;
-            cursor: pointer; flex-shrink: 0; transition: transform 0.15s ease;
-            pointer-events: auto;
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            border: none;
+            color: #fff;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            flex-shrink: 0;
+            overflow: hidden;
+            transition: transform 0.15s ease;
         }
+        .icon-btn > span { position: relative; z-index: 1; }
         .icon-btn:active { transform: scale(0.9); }
 
-        /* VỊ TRÍ GÓC TRÁI + CHỮ NHỎ */
+        /* Lớp phủ chữ trắng viền đen sắc nét (đóng dấu thời gian/địa chỉ) */
         .timestamp-overlay {
             position: absolute;
-            bottom: calc(env(safe-area-inset-bottom) + 115px);
+            bottom: calc(env(safe-area-inset-bottom) + 132px);
             left: 16px;
-            max-width: 80vw;
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
+            right: 16px;
             font-family: 'Share Tech Mono', monospace;
             color: #FFF;
             pointer-events: none;
-            line-height: 1.25;
+            line-height: 1.4;
             text-shadow:
-                -1px -1px 0 #000, 1px -1px 0 #000,
-                -1px  1px 0 #000, 1px  1px 0 #000,
-                 0px  1px 0 #000, 0px -1px 0 #000,
-                 1px  0px 0 #000, -1px 0px 0 #000;
+                -1.5px -1.5px 0 #000,
+                 1.5px -1.5px 0 #000,
+                -1.5px  1.5px 0 #000,
+                 1.5px  1.5px 0 #000,
+                 0px    1.5px 0 #000,
+                 0px   -1.5px 0 #000,
+                 1.5px  0px 0 #000,
+                -1.5px  0px 0 #000;
             z-index: 5;
+            transition: bottom 0.2s ease, right 0.2s ease;
         }
 
-        /* LOGO CHUẨN HIỂN THỊ TRÊN MÀN HÌNH CHỜ */
-        .ui-logo-box {
-            width: 44px;
-            margin-bottom: 8px;
-            filter: drop-shadow(0 2px 5px rgba(0,0,0,0.4));
+        #timestamp { font-size: 1.25rem; font-weight: bold; letter-spacing: 0.5px; }
+        #address { font-size: 0.82rem; font-weight: bold; margin-top: 2px; letter-spacing: 0.3px; word-wrap: break-word; }
+
+        /* Logo góc trên (xem trước dấu đóng vào ảnh) — thẻ kính nhỏ */
+        .logo-overlay-wrap {
+            position: absolute;
+            top: calc(env(safe-area-inset-top) + 66px);
+            right: 15px;
+            padding: 6px;
+            border-radius: 12px;
+            z-index: 5;
+            pointer-events: none;
         }
-        .ui-logo-box img {
-            width: 100%;
-            height: auto;
+        .logo-overlay {
+            height: 32px;
+            width: auto;
             display: block;
+            position: relative;
+            z-index: 1;
         }
 
-        #timestamp { font-size: 0.7rem; font-weight: bold; letter-spacing: 0.2px; }
-        #address { font-size: 0.5rem; font-weight: bold; margin-top: 3px; letter-spacing: 0.2px; word-wrap: break-word; }
+        /* Hiệu ứng nháy đèn flash khi chụp */
+        .flash-overlay {
+            position: absolute;
+            inset: 0;
+            background: #fff;
+            opacity: 0;
+            pointer-events: none;
+            z-index: 8;
+        }
 
-        .flash-overlay { position: absolute; inset: 0; background: #fff; opacity: 0; pointer-events: none; z-index: 8; }
-
+        /* ============ CỤM ĐIỀU KHIỂN (kiểu Camera iPad, chất liệu kính lỏng) ============ */
+        /* Mặc định - máy nằm DỌC: thanh ngang phía dưới, nút chụp CHÍNH GIỮA */
         .controls-bar {
-            position: absolute; left: 0; right: 0; bottom: 0; z-index: 6;
-            display: flex; flex-direction: row; align-items: center; justify-content: space-between;
+            position: absolute;
+            left: 0; right: 0; bottom: 0;
+            z-index: 6;
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-between;
             padding: 16px 34px calc(env(safe-area-inset-bottom) + 26px);
         }
 
         .shutter-btn {
-            width: 76px; height: 76px; border-radius: 50%; cursor: pointer; position: relative; flex-shrink: 0; padding: 5px;
+            width: 76px;
+            height: 76px;
+            border-radius: 50%;
+            cursor: pointer;
+            position: relative;
+            flex-shrink: 0;
+            padding: 5px;
             background: var(--glass-fill-strong);
             backdrop-filter: blur(18px) saturate(180%);
             -webkit-backdrop-filter: blur(18px) saturate(180%);
-            border: 1px solid var(--glass-border-soft); border-top-color: var(--glass-border);
+            border: 1px solid var(--glass-border-soft);
+            border-top-color: var(--glass-border);
             box-shadow: var(--glass-shadow), inset 0 1px 0 rgba(255,255,255,0.55);
             transition: transform 0.12s ease;
         }
+        .shutter-btn::before {
+            /* vệt sáng khúc xạ trên vành kính */
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            background: linear-gradient(125deg, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0) 35%, rgba(255,255,255,0) 65%, rgba(255,255,255,0.15) 100%);
+            pointer-events: none;
+        }
         .shutter-btn::after {
-            content: ''; position: absolute; inset: 5px; border-radius: 50%;
-            background: radial-gradient(circle at 32% 28%, #5aa, var(--brand-green) 60%, #005940 100%);
+            content: '';
+            position: absolute;
+            inset: 5px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 32% 28%, #ff5147, var(--7e-red) 60%, #c21b13 100%);
             box-shadow: inset 0 2px 3px rgba(255,255,255,0.5), inset 0 -3px 6px rgba(0,0,0,0.25);
             transition: transform 0.12s ease, border-radius 0.12s ease;
         }
         .shutter-btn:active { transform: scale(0.95); }
         .shutter-btn:active::after { transform: scale(0.84); border-radius: 40%; }
-        .shutter-btn[disabled] { opacity: 0.5; pointer-events: none; filter: grayscale(1); }
 
         .thumb-btn {
-            width: 48px; height: 48px; border-radius: 16px; color: #fff; font-size: 19px;
-            display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; transition: transform 0.15s ease;
+            width: 48px;
+            height: 48px;
+            border-radius: 16px;
+            color: #fff;
+            font-size: 19px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            flex-shrink: 0;
+            overflow: hidden;
+            transition: transform 0.15s ease;
         }
+        .thumb-btn > span { position: relative; z-index: 1; filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3)); }
         .thumb-btn:active { transform: scale(0.9); }
-        .ghost-slot { width: 48px; height: 48px; visibility: hidden; flex-shrink: 0; }
 
+        /* Ô đệm vô hình để giữ nút chụp luôn ở chính giữa */
+        .ghost-slot {
+            width: 48px;
+            height: 48px;
+            visibility: hidden;
+            flex-shrink: 0;
+        }
+
+        /* máy nằm NGANG: cụm điều khiển dồn sang mép phải, nút chụp giữa theo chiều dọc */
+        @media (orientation: landscape) {
+            .controls-bar {
+                left: auto;
+                bottom: 0;
+                top: 0;
+                right: 0;
+                width: auto;
+                height: 100%;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                gap: 22px;
+                padding: 20px calc(env(safe-area-inset-right) + 22px) 20px 20px;
+            }
+            .timestamp-overlay {
+                bottom: calc(env(safe-area-inset-bottom) + 20px);
+                right: calc(env(safe-area-inset-right) + 128px);
+            }
+        }
+
+        /* ============ TẤM CÀI ĐẶT (Bottom Sheet — kính lỏng "standard", dày & khúc xạ mạnh hơn) ============ */
         .sheet-backdrop {
-            position: fixed; inset: 0; background: rgba(0,0,0,0.4);
-            backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px);
-            opacity: 0; pointer-events: none; transition: opacity 0.25s ease; z-index: 10000;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.35);
+            backdrop-filter: blur(2px);
+            -webkit-backdrop-filter: blur(2px);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.25s ease;
+            z-index: 20;
         }
         .sheet-backdrop.show { opacity: 1; pointer-events: auto; }
 
         .settings-sheet {
-            position: fixed; left: 10px; right: 10px; bottom: 0; z-index: 10001;
-            color: var(--text-main); border-radius: 28px 28px 0 0; padding: 10px 18px calc(env(safe-area-inset-bottom) + 18px);
-            max-height: 85vh; overflow-y: auto; background: var(--panel-fill);
-            backdrop-filter: blur(34px) saturate(190%); -webkit-backdrop-filter: blur(34px) saturate(190%);
-            border: 1px solid var(--panel-border); border-bottom: none;
+            position: fixed;
+            left: 10px; right: 10px; bottom: 0;
+            z-index: 21;
+            color: var(--text-main);
+            border-radius: 28px 28px 0 0;
+            padding: 10px 18px calc(env(safe-area-inset-bottom) + 18px);
+            max-height: 82vh;
+            overflow-y: auto;
+
+            background: var(--panel-fill);
+            backdrop-filter: blur(34px) saturate(190%);
+            -webkit-backdrop-filter: blur(34px) saturate(190%);
+            border: 1px solid var(--panel-border);
+            border-bottom: none;
             box-shadow: 0 -16px 44px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.6);
-            transform: translateY(115%); transition: transform 0.35s cubic-bezier(.32,.9,.4,1);
+
+            transform: translateY(115%);
+            transition: transform 0.35s cubic-bezier(.32,.9,.4,1);
         }
         .settings-sheet.show { transform: translateY(0); }
 
-        .sheet-handle { width: 38px; height: 5px; border-radius: 3px; background: var(--text-muted); opacity: 0.4; margin: 6px auto 14px; }
-        .sheet-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
-        .sheet-header h3 { color: var(--brand-green); font-size: 17px; font-weight: 800; }
+        .sheet-handle {
+            width: 38px;
+            height: 5px;
+            border-radius: 3px;
+            background: var(--text-muted);
+            opacity: 0.4;
+            margin: 6px auto 14px;
+        }
+
+        .sheet-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+        .sheet-header h3 { color: var(--7e-green); font-size: 17px; font-weight: 800; }
         .close-btn {
-            width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--glass-border-soft);
-            background: rgba(128,128,128,0.18); backdrop-filter: blur(10px);
-            font-size: 15px; color: var(--text-muted); cursor: pointer; display: flex; align-items: center; justify-content: center;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            border: 1px solid var(--glass-border-soft);
+            background: rgba(128,128,128,0.18);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            font-size: 15px;
+            color: var(--text-muted);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
-        .input-group { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
-        .input-group label { font-size: 13px; font-weight: bold; margin-left: 4px; }
-        .input-group input {
-            width: 100%; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--border-color);
-            background: rgba(128,128,128,0.08); color: var(--text-main); font-size: 14px; outline: none; transition: border-color 0.2s;
+        .theme-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 4px 18px;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 16px;
         }
-        .input-group input:focus { border-color: var(--brand-green); }
+        .theme-row span { font-size: 14px; font-weight: bold; }
 
-        .status-row { display: flex; flex-direction: column; gap: 10px; border-top: 1px solid var(--border-color); padding-top: 16px; margin-bottom: 6px; }
-        .status-line { display: flex; align-items: center; gap: 8px; font-size: 13px; padding: 10px 12px; border-radius: 12px; background: rgba(128,128,128,0.10); }
-        .status-dot { width: 9px; height: 9px; border-radius: 50%; background: #2ecc71; flex-shrink: 0; }
-        .status-dot.pending { background: #f1c40f; animation: pulse 1.2s infinite; }
+        /* Công tắc chuyển đổi giao diện — chất liệu kính */
+        .switch { position: relative; display: inline-block; width: 48px; height: 28px; flex-shrink: 0; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .switch-track {
+            position: absolute; cursor: pointer; inset: 0;
+            background: rgba(128,128,128,0.28);
+            backdrop-filter: blur(6px);
+            border: 1px solid rgba(255,255,255,0.25);
+            border-radius: 26px;
+            transition: 0.25s;
+        }
+        .switch-track::before {
+            content: "";
+            position: absolute;
+            height: 22px; width: 22px;
+            left: 2px; bottom: 2px;
+            background: linear-gradient(160deg, #ffffff, #e6e6e6);
+            border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3), inset 0 1px 1px rgba(255,255,255,0.8);
+            transition: 0.25s;
+        }
+        .switch input:checked + .switch-track { background: rgba(0,128,98,0.55); border-color: rgba(255,255,255,0.4); }
+        .switch input:checked + .switch-track::before { transform: translateX(20px); }
+
+        /* Khu vực ô nhập liệu — hốc kính lõm (utility glass) */
+        .input-group { margin-bottom: 15px; text-align: left; }
+        .input-label {
+            font-size: 12px;
+            font-weight: bold;
+            color: var(--7e-green);
+            margin-bottom: 6px;
+            display: block;
+            letter-spacing: 0.3px;
+        }
+        .address-textbox {
+            width: 100%;
+            padding: 12px 14px;
+            font-size: 14px;
+            border: 1px solid rgba(128,128,128,0.22);
+            border-radius: 14px;
+            background: rgba(128,128,128,0.10);
+            color: var(--text-main);
+            outline: none;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.08);
+            transition: 0.2s;
+        }
+        .address-textbox:focus {
+            border-color: var(--7e-orange);
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.08), 0 0 0 3px rgba(243, 112, 33, 0.18);
+        }
+
+        /* Canvas ẩn phục vụ render ảnh */
         canvas { display: none; }
     </style>
 </head>
@@ -239,30 +450,32 @@
 
 <div class="app-container" id="cameraWrapper">
     <video id="video" autoplay playsinline muted></video>
+
     <div class="top-gradient"></div>
 
     <div class="top-bar">
         <div class="brand-pill glass">
-            <span class="dot pending" id="gpsDot"></span>
-            <span id="brandLabel">Đang lấy vị trí…</span>
+            <img src="https://upload.wikimedia.org/wikipedia/commons/4/40/7-eleven_logo.svg" alt="7-Eleven Logo">
+            <span>59 Trương Định</span>
         </div>
         <button class="icon-btn glass" id="settingsBtn" aria-label="Cài đặt"><span>⚙️</span></button>
     </div>
 
     <div class="timestamp-overlay">
-        <!-- Logo Vector chuẩn - Đảm bảo chạy 100% offline -->
-        <div class="ui-logo-box">
-            <img id="logoImg" src="data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='250' height='250' viewBox='0 0 250 250'%3E%3Crect width='240' height='240' x='5' y='5' fill='%23fff' stroke='%23008062' stroke-width='6' rx='20'/%3E%3Cpath fill='%23f37021' d='M 55 50 L 205 50 L 205 90 L 55 90 Z'/%3E%3Cpath fill='%23ea2839' d='M 205 90 L 115 205 L 60 205 L 150 90 Z'/%3E%3Ctext x='125' y='145' font-family='Arial, sans-serif' font-weight='900' font-size='42' fill='%23008062' stroke='%23fff' stroke-width='2.5' stroke-linejoin='round' text-anchor='middle' letter-spacing='1'%3EELEVEn%3C/text%3E%3C/svg%3E" alt="7-Eleven Logo">
-        </div>
-        <div id="timestamp">--:--:--</div>
-        <div id="address">Đang lấy vị trí GPS…</div>
+        <div id="timestamp">0000-00-00 00:00:00</div>
+        <div id="address">59 Trương Định P.Bến Thành TP.Hồ Chí Minh</div>
+    </div>
+
+    <div class="logo-overlay-wrap glass">
+        <img id="logoSource" crossorigin="anonymous" src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/40/7-eleven_logo.svg/120px-7-eleven_logo.svg.png" class="logo-overlay" alt="7E Logo">
     </div>
 
     <div class="flash-overlay" id="flashOverlay"></div>
 
+    <!-- Cụm điều khiển kiểu Camera iPad, chất liệu kính lỏng: dọc -> giữa dưới, ngang -> giữa bên phải -->
     <div class="controls-bar">
         <button class="thumb-btn glass" id="uploadTrigger" aria-label="Đóng dấu ảnh có sẵn"><span>🖼️</span></button>
-        <button class="shutter-btn" id="snapBtn" aria-label="Chụp ảnh" disabled></button>
+        <button class="shutter-btn" id="snapBtn" aria-label="Chụp ảnh"></button>
         <div class="ghost-slot"></div>
     </div>
 </div>
@@ -270,6 +483,7 @@
 <input type="file" id="fileInput" accept="image/*" style="display: none;">
 <canvas id="canvas"></canvas>
 
+<!-- Tấm cài đặt: đổi giờ, đổi địa chỉ, đổi giao diện -->
 <div class="sheet-backdrop" id="sheetBackdrop"></div>
 <div class="settings-sheet" id="settingsSheet">
     <div class="sheet-handle"></div>
@@ -278,23 +492,41 @@
         <button class="close-btn" id="closeSettings" aria-label="Đóng">✕</button>
     </div>
 
-    <div class="input-group">
-        <label>Thời gian (Tuỳ chỉnh):</label>
-        <input type="text" id="customTimeInput" placeholder="VD: 2026-09-15 08:30:00 (Để trống lấy tự động)">
-    </div>
-    
-    <div class="input-group">
-        <label>Địa điểm (Tuỳ chỉnh):</label>
-        <input type="text" id="customAddressInput" placeholder="Nhập địa chỉ muốn thay đổi... (Để trống lấy tự động)">
+    <div class="theme-row">
+        <span>Giao diện tối</span>
+        <label class="switch">
+            <input type="checkbox" id="themeSwitch">
+            <span class="switch-track"></span>
+        </label>
     </div>
 
-    <div class="status-row">
-        <div class="status-line"><span class="status-dot" id="timeDot"></span> Nguồn giờ: <b id="timeStatus">Hệ thống (Tự động)</b></div>
-        <div class="status-line"><span class="status-dot pending" id="gpsStatusDot"></span> Nguồn vị trí: <b id="gpsStatus">Đang xác định qua GPS…</b></div>
+    <div class="input-group">
+        <label class="input-label" for="addressInput">📍 Địa chỉ hiển thị trên ảnh</label>
+        <input type="text" id="addressInput" class="address-textbox" value="59 Trương Định P.Bến Thành TP.Hồ Chí Minh" placeholder="Nhập địa chỉ hoặc ghi chú ca làm việc...">
+    </div>
+
+    <div class="input-group">
+        <label class="input-label" for="timeInput">⏱️ Thời gian hiển thị (để trống nếu dùng giờ thực)</label>
+        <input type="text" id="timeInput" class="address-textbox" value="" placeholder="Để trống để tự động lấy giờ hiện tại...">
     </div>
 </div>
 
 <script>
+    // Quản lý giao diện Sáng/Tối
+    function toggleTheme(isDark) {
+        const newTheme = isDark ? 'dark' : 'light';
+        document.documentElement.setAttribute('data-theme', newTheme);
+        localStorage.setItem('appTheme', newTheme);
+    }
+
+    function initTheme() {
+        const savedTheme = localStorage.getItem('appTheme') || 'light';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        const themeSwitch = document.getElementById('themeSwitch');
+        if (themeSwitch) themeSwitch.checked = savedTheme === 'dark';
+    }
+
+    // Lấy thời gian hiện tại định dạng chuẩn
     function getFormattedTime() {
         const now = new Date();
         const year = now.getFullYear();
@@ -306,185 +538,260 @@
         return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
     }
 
+    // Âm thanh màn trập camera (Web Audio API)
+    function playShutterSound() {
+        try {
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            if (!AudioContext) return;
+            const audioCtx = new AudioContext();
+
+            const osc = audioCtx.createOscillator();
+            const oscGain = audioCtx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(580, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(60, audioCtx.currentTime + 0.05);
+            oscGain.gain.setValueAtTime(0.35, audioCtx.currentTime);
+            oscGain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.05);
+            osc.connect(oscGain);
+            oscGain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.05);
+
+            const bufferSize = audioCtx.sampleRate * 0.07;
+            const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+            const data = buffer.getChannelData(0);
+            for (let i = 0; i < bufferSize; i++) { data[i] = Math.random() * 2 - 1; }
+            const noise = audioCtx.createBufferSource();
+            noise.buffer = buffer;
+            const noiseFilter = audioCtx.createBiquadFilter();
+            noiseFilter.type = 'highpass';
+            noiseFilter.frequency.value = 1400;
+            const noiseGain = audioCtx.createGain();
+            noiseGain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+            noiseGain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.07);
+            noise.connect(noiseFilter);
+            noiseFilter.connect(noiseGain);
+            noiseGain.connect(audioCtx.destination);
+            noise.start();
+            noise.stop(audioCtx.currentTime + 0.07);
+        } catch (e) { console.log(e); }
+    }
+
+    // Hiệu ứng nháy đèn flash khi bấm chụp
     function triggerFlash() {
         const flash = document.getElementById('flashOverlay');
-        flash.style.transition = 'none'; flash.style.opacity = '0.85';
+        if (!flash) return;
+        flash.style.transition = 'none';
+        flash.style.opacity = '0.85';
         requestAnimationFrame(() => {
-            flash.style.transition = 'opacity 0.35s ease'; flash.style.opacity = '0';
+            flash.style.transition = 'opacity 0.35s ease';
+            flash.style.opacity = '0';
         });
     }
 
     window.addEventListener('DOMContentLoaded', () => {
+        initTheme();
+
         const video = document.getElementById('video');
         const canvas = document.getElementById('canvas');
         const timestampDiv = document.getElementById('timestamp');
         const addressDiv = document.getElementById('address');
+        const addressInput = document.getElementById('addressInput');
+        const timeInput = document.getElementById('timeInput');
         const snapBtn = document.getElementById('snapBtn');
         const fileInput = document.getElementById('fileInput');
         const uploadTrigger = document.getElementById('uploadTrigger');
-        const logoImg = document.getElementById('logoImg');
+        const logoSource = document.getElementById('logoSource');
+        const themeSwitch = document.getElementById('themeSwitch');
 
-        const gpsDot = document.getElementById('gpsDot');
-        const gpsStatusDot = document.getElementById('gpsStatusDot');
-        const gpsStatus = document.getElementById('gpsStatus');
-        const brandLabel = document.getElementById('brandLabel');
-
+        // Mở / đóng tấm cài đặt (nơi ẩn phần đổi giờ, địa chỉ, giao diện)
         const settingsBtn = document.getElementById('settingsBtn');
         const settingsSheet = document.getElementById('settingsSheet');
         const sheetBackdrop = document.getElementById('sheetBackdrop');
         const closeSettings = document.getElementById('closeSettings');
-        
-        const customTimeInput = document.getElementById('customTimeInput');
-        const customAddressInput = document.getElementById('customAddressInput');
 
-        let currentAddress = null;
-        let currentCoords = null;
+        function openSettings() {
+            settingsSheet.classList.add('show');
+            sheetBackdrop.classList.add('show');
+        }
+        function closeSettingsSheet() {
+            settingsSheet.classList.remove('show');
+            sheetBackdrop.classList.remove('show');
+        }
+        if (settingsBtn) settingsBtn.addEventListener('click', openSettings);
+        if (closeSettings) closeSettings.addEventListener('click', closeSettingsSheet);
+        if (sheetBackdrop) sheetBackdrop.addEventListener('click', closeSettingsSheet);
 
-        // Xử lý mạnh tay sự kiện chạm trên iOS để tránh kẹt nút cài đặt
-        function openSettings(e) { 
-            if(e) e.preventDefault(); 
-            settingsSheet.classList.add('show'); 
-            sheetBackdrop.classList.add('show'); 
-        }
-        function closeSettingsSheet(e) { 
-            if(e) e.preventDefault();
-            settingsSheet.classList.remove('show'); 
-            sheetBackdrop.classList.remove('show'); 
-        }
+        if (themeSwitch) themeSwitch.addEventListener('change', () => toggleTheme(themeSwitch.checked));
 
-        if (settingsBtn) {
-            settingsBtn.addEventListener('click', openSettings);
-            settingsBtn.addEventListener('touchstart', openSettings, {passive: false});
-        }
-        if (closeSettings) {
-            closeSettings.addEventListener('click', closeSettingsSheet);
-            closeSettings.addEventListener('touchstart', closeSettingsSheet, {passive: false});
-        }
-        if (sheetBackdrop) {
-            sheetBackdrop.addEventListener('click', closeSettingsSheet);
-            sheetBackdrop.addEventListener('touchstart', closeSettingsSheet, {passive: false});
+        // Đồng bộ dữ liệu hiển thị từ TextBox lên khung Viewfinder
+        if (addressInput && addressDiv) {
+            addressDiv.innerText = addressInput.value;
+            addressInput.addEventListener('input', () => { addressDiv.innerText = addressInput.value; });
         }
 
-        function getActiveTime() { return customTimeInput.value.trim() || getFormattedTime(); }
+        if (timeInput && timestampDiv) {
+            timeInput.addEventListener('input', () => {
+                const userTime = timeInput.value.trim();
+                timestampDiv.innerText = userTime !== "" ? userTime : getFormattedTime();
+            });
+        }
 
-        setInterval(() => { timestampDiv.innerText = getActiveTime(); }, 1000);
+        // Vòng lặp đồng hồ thời gian thực
+        if (timestampDiv) {
+            timestampDiv.innerText = (timeInput && timeInput.value.trim() !== "") ? timeInput.value.trim() : getFormattedTime();
+            setInterval(() => {
+                if (timeInput && timeInput.value.trim() === "") { timestampDiv.innerText = getFormattedTime(); }
+            }, 1000);
+        }
 
-        customAddressInput.addEventListener('input', () => {
-            const customVal = customAddressInput.value.trim();
-            if (customVal) {
-                gpsStatus.innerText = 'Tuỳ chỉnh thủ công';
-                gpsStatusDot.className = 'status-dot';
-                addressDiv.innerText = customVal;
-                snapBtn.removeAttribute('disabled');
-            } else if (currentAddress) {
-                gpsStatus.innerText = 'GPS thực tế';
-                gpsStatusDot.className = 'status-dot';
-                addressDiv.innerText = `${currentAddress} (${currentCoords.lat.toFixed(5)}, ${currentCoords.lon.toFixed(5)})`;
-                snapBtn.removeAttribute('disabled');
+        // Khởi tạo luồng Camera trực tiếp (toàn màn hình, tự phủ kín khung hình)
+        async function initCamera() {
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return;
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: 'environment', width: { ideal: 3840 }, height: { ideal: 2160 } },
+                    audio: false
+                });
+                if (video) video.srcObject = stream;
+            } catch (err) {
+                try {
+                    const fallback = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false });
+                    if (video) video.srcObject = fallback;
+                } catch (e) { console.log("Không mở được camera."); }
             }
-        });
+        }
+        initCamera();
 
+        // Cập nhật hàm xử lý: Thêm Web Share API để cải thiện việc lưu vào Thư viện ảnh
         async function drawWatermarkAndDownload(sourceElement, isVideoSource) {
-            const finalAddress = customAddressInput.value.trim() || currentAddress;
-            if (!finalAddress) return alert("Chưa có GPS. Vui lòng đợi hoặc nhập tay trong Cài đặt.");
+            const imgWidth = isVideoSource ? sourceElement.videoWidth : sourceElement.naturalWidth;
+            const imgHeight = isVideoSource ? sourceElement.videoHeight : sourceElement.naturalHeight;
 
-            const imgW = isVideoSource ? sourceElement.videoWidth : sourceElement.naturalWidth;
-            const imgH = isVideoSource ? sourceElement.videoHeight : sourceElement.naturalHeight;
-            
+            if (!imgWidth || !imgHeight) {
+                alert("Hình ảnh chưa sẵn sàng xử lý.");
+                return;
+            }
+
+            // Phát tiếng âm thanh chụp ảnh
+            playShutterSound();
+
             const ctx = canvas.getContext('2d');
-            canvas.width = imgW; canvas.height = imgH;
-            ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
+            canvas.width = imgWidth;
+            canvas.height = imgHeight;
+
+            // 1. Vẽ ảnh gốc vào canvas
             ctx.drawImage(sourceElement, 0, 0, canvas.width, canvas.height);
 
+            // Tính toán tỷ lệ font chữ thông minh theo cạnh ngắn nhất của ảnh
             const baseSize = Math.min(canvas.width, canvas.height);
-            
-            // THIẾT LẬP KÍCH THƯỚC CHỮ SIÊU NHỎ VÀ CĂN GÓC TRÁI
-            const padding = Math.floor(baseSize * 0.03); 
-            const fontSizeTime = Math.floor(baseSize * 0.022); 
-            const fontSizeAddr = Math.floor(baseSize * 0.015);
-            const finalTimeText = getActiveTime();
+            const timeText = (timeInput && timeInput.value.trim() !== "") ? timeInput.value.trim() : getFormattedTime();
+            const activeAddress = addressInput ? addressInput.value : "";
 
-            // Tính toạ độ các lớp từ dưới lên (ép lề trái)
+            const fontSizeTime = Math.floor(baseSize * 0.055);
+            const fontSizeAddr = Math.floor(baseSize * 0.038);
+            const padding = Math.floor(baseSize * 0.04);
+
+            ctx.strokeStyle = '#000000';
+            ctx.fillStyle = '#FFFFFF';
+            ctx.lineJoin = 'round';
+            ctx.miterLimit = 2;
+
+            // 2. Vẽ dòng địa chỉ (Dưới cùng)
+            ctx.font = `bold ${fontSizeAddr}px 'Share Tech Mono', monospace`;
             const addrY = canvas.height - padding;
-            const timeY = addrY - fontSizeAddr - Math.floor(baseSize * 0.012);
-            
-            // Vẽ Logo góc trái (Phía trên phần chữ)
-            const logoWidth = Math.floor(baseSize * 0.09); // Kích thước logo
-            const logoHeight = logoWidth; // Vì SVG tỉ lệ 1:1 (250x250)
-            const logoY = timeY - fontSizeTime - logoHeight - Math.floor(baseSize * 0.012);
+            ctx.lineWidth = Math.max(3, Math.floor(fontSizeAddr * 0.16));
+            ctx.strokeText(activeAddress, padding, addrY);
+            ctx.fillText(activeAddress, padding, addrY);
 
-            if (logoImg && logoImg.complete) {
-                ctx.drawImage(logoImg, padding, logoY, logoWidth, logoHeight);
+            // 3. Vẽ dòng thời gian (Trên dòng địa chỉ)
+            ctx.font = `bold ${fontSizeTime}px 'Share Tech Mono', monospace`;
+            const timeY = addrY - fontSizeAddr - Math.floor(baseSize * 0.02);
+            ctx.lineWidth = Math.max(4, Math.floor(fontSizeTime * 0.16));
+            ctx.strokeText(timeText, padding, timeY);
+            ctx.fillText(timeText, padding, timeY);
+
+            // 4. Vẽ Logo 7-Eleven góc trên bên phải
+            if (logoSource) {
+                const logoSize = Math.floor(baseSize * 0.13);
+                const logoX = canvas.width - logoSize - padding;
+                const logoY = padding;
+
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+                ctx.beginPath();
+                ctx.roundRect(logoX - 4, logoY - 4, logoSize + 8, logoSize + 8, Math.max(2, Math.floor(baseSize * 0.015)));
+                ctx.fill();
+
+                ctx.drawImage(logoSource, logoX, logoY, logoSize, logoSize);
             }
 
-            // Vẽ Chữ (Text)
-            ctx.textAlign = 'left';
-            ctx.strokeStyle = '#000000'; ctx.fillStyle = '#FFFFFF';
-            ctx.lineJoin = 'round'; ctx.miterLimit = 2;
-
-            ctx.font = `bold ${fontSizeAddr}px 'Share Tech Mono', monospace`;
-            ctx.lineWidth = Math.max(2, Math.floor(fontSizeAddr * 0.15));
-            ctx.strokeText(finalAddress, padding, addrY);
-            ctx.fillText(finalAddress, padding, addrY);
-
-            ctx.font = `bold ${fontSizeTime}px 'Share Tech Mono', monospace`;
-            ctx.lineWidth = Math.max(3, Math.floor(fontSizeTime * 0.15));
-            ctx.strokeText(finalTimeText, padding, timeY);
-            ctx.fillText(finalTimeText, padding, timeY);
-
-            canvas.toBlob((blob) => {
+            // 5. Xuất ảnh và xử lý lưu/chia sẻ
+            canvas.toBlob(async (blob) => {
                 if (!blob) return;
-                const fileName = `7Eleven_Snap_${Date.now()}.jpg`;
+                const fileName = isVideoSource ? `7E_Snap_${Date.now()}.jpg` : `7E_Watermarked_${Date.now()}.jpg`;
                 const file = new File([blob], fileName, { type: 'image/jpeg' });
+
+                // Ưu tiên dùng Web Share API nếu trình duyệt hỗ trợ (hỗ trợ lưu thẳng vào Photos trên điện thoại)
                 if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                    navigator.share({ files: [file] }).catch(()=>{});
-                } else {
-                    const dl = document.createElement('a'); dl.download = fileName;
-                    dl.href = URL.createObjectURL(blob); dl.click();
-                }
-            }, 'image/jpeg', 0.98);
-        }
-
-        function initGPS() {
-            navigator.geolocation.watchPosition(
-                async (pos) => {
-                    const { latitude, longitude } = pos.coords;
                     try {
-                        const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${latitude}&lon=${longitude}&accept-language=vi`;
-                        const res = await fetch(url); const data = await res.json();
-                        currentAddress = data.display_name || `${latitude.toFixed(5)}, ${longitude.toFixed(5)}`;
-                    } catch(e) { currentAddress = `${latitude.toFixed(5)}, ${longitude.toFixed(5)}`; }
-                    
-                    currentCoords = { lat: latitude, lon: longitude };
-                    brandLabel.innerText = currentAddress; gpsDot.className = 'dot';
-                    
-                    if (!customAddressInput.value.trim()) {
-                        gpsStatusDot.className = 'status-dot'; gpsStatus.innerText = 'GPS thực tế';
-                        addressDiv.innerText = `${currentAddress} (${latitude.toFixed(5)}, ${longitude.toFixed(5)})`;
-                        snapBtn.removeAttribute('disabled');
+                        await navigator.share({
+                            files: [file],
+                            title: '7-Eleven Timestamp',
+                            text: 'Ảnh chấm công'
+                        });
+                        return;
+                    } catch (err) {
+                        // Nếu user hủy, vẫn thực hiện tải về dự phòng
                     }
-                },
-                () => { if(!customAddressInput.value) snapBtn.setAttribute('disabled', 'true'); },
-                { enableHighAccuracy: true }
-            );
+                }
+
+                // Fallback: Tải về truyền thống
+                const dataURL = URL.createObjectURL(blob);
+                const downloadLink = document.createElement('a');
+                downloadLink.download = fileName;
+                downloadLink.href = dataURL;
+                document.body.appendChild(downloadLink);
+                downloadLink.click();
+                document.body.removeChild(downloadLink);
+                setTimeout(() => URL.revokeObjectURL(dataURL), 1000);
+            }, 'image/jpeg', 0.95);
         }
 
-        async function initCamera() {
-            try {
-                video.srcObject = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment', width: { ideal: 4096 } } });
-            } catch (err) {}
+        // Sự kiện khi bấm nút Chụp ảnh trực tiếp từ camera
+        if (snapBtn && video) {
+            snapBtn.addEventListener('click', () => {
+                if (!video.videoWidth) {
+                    alert("Camera chưa sẵn sàng, vui lòng đợi trong giây lát.");
+                    return;
+                }
+                triggerFlash();
+                drawWatermarkAndDownload(video, true);
+            });
         }
-        
-        initGPS(); initCamera();
 
-        if (snapBtn) snapBtn.addEventListener('click', () => { triggerFlash(); drawWatermarkAndDownload(video, true); });
-        if (uploadTrigger) uploadTrigger.addEventListener('click', () => fileInput.click());
-        if (fileInput) fileInput.addEventListener('change', (e) => {
-            const f = e.target.files[0]; if (!f) return;
-            const r = new FileReader();
-            r.onload = (ev) => { const img = new Image(); img.onload = () => drawWatermarkAndDownload(img, false); img.src = ev.target.result; };
-            r.readAsDataURL(f);
-        });
+        // Nút nhỏ mở thư viện để đóng dấu ảnh có sẵn
+        if (uploadTrigger && fileInput) {
+            uploadTrigger.addEventListener('click', () => fileInput.click());
+        }
+
+        // Sự kiện xử lý file ảnh khi người dùng chọn Tải ảnh lên từ bộ nhớ máy
+        if (fileInput) {
+            fileInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const img = new Image();
+                    img.onload = function() {
+                        drawWatermarkAndDownload(img, false);
+                        fileInput.value = "";
+                    };
+                    img.src = event.target.result;
+                };
+                reader.readAsDataURL(file);
+            });
+        }
     });
 </script>
 </body>
