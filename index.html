@@ -97,7 +97,7 @@
         .top-bar {
             position: absolute;
             top: 0; left: 0; right: 0;
-            z-index: 999; /* Tăng cực cao để không bị đè */
+            z-index: 9999; /* Ưu tiên cao nhất để không bị kẹt cảm ứng */
             pointer-events: auto;
             display: flex;
             align-items: center;
@@ -106,12 +106,8 @@
         }
 
         .brand-pill {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 5px 16px 5px 6px;
-            border-radius: 999px;
-            overflow: hidden;
+            display: flex; align-items: center; gap: 8px;
+            padding: 5px 16px 5px 6px; border-radius: 999px; overflow: hidden;
         }
         .brand-pill span { color: #fff; font-size: 12px; font-weight: 700; letter-spacing: 0.2px; text-shadow: 0 1px 3px rgba(0,0,0,0.35); }
         .brand-pill .dot { width: 8px; height: 8px; border-radius: 50%; background: #2ecc71; flex-shrink: 0; }
@@ -120,28 +116,19 @@
         @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.3;} }
 
         .icon-btn {
-            width: 42px;
-            height: 42px;
-            border-radius: 50%;
-            border: none;
-            color: #fff;
-            font-size: 18px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            flex-shrink: 0;
-            transition: transform 0.15s ease;
+            width: 44px; height: 44px; border-radius: 50%; border: none;
+            color: #fff; font-size: 19px; display: flex; align-items: center; justify-content: center;
+            cursor: pointer; flex-shrink: 0; transition: transform 0.15s ease;
             pointer-events: auto;
         }
         .icon-btn:active { transform: scale(0.9); }
 
-        /* CĂN CHỈNH LẠI CHỮ: Nhỏ hơn và ép về góc trái */
+        /* VỊ TRÍ GÓC TRÁI + CHỮ NHỎ */
         .timestamp-overlay {
             position: absolute;
-            bottom: calc(env(safe-area-inset-bottom) + 120px);
-            left: 14px;
-            max-width: 80vw; /* Giới hạn để chữ không tràn hết màn hình */
+            bottom: calc(env(safe-area-inset-bottom) + 115px);
+            left: 16px;
+            max-width: 80vw;
             display: flex;
             flex-direction: column;
             align-items: flex-start;
@@ -150,39 +137,27 @@
             pointer-events: none;
             line-height: 1.25;
             text-shadow:
-                -1.2px -1.2px 0 #000, 1.2px -1.2px 0 #000,
-                -1.2px  1.2px 0 #000, 1.2px  1.2px 0 #000,
-                 0px    1.2px 0 #000, 0px   -1.2px 0 #000,
-                 1.2px  0px 0 #000, -1.2px  0px 0 #000;
+                -1px -1px 0 #000, 1px -1px 0 #000,
+                -1px  1px 0 #000, 1px  1px 0 #000,
+                 0px  1px 0 #000, 0px -1px 0 #000,
+                 1px  0px 0 #000, -1px 0px 0 #000;
             z-index: 5;
         }
 
-        /* GIAO DIỆN LOGO 7-ELEVEN BÊN TRÁI MÀN HÌNH */
+        /* LOGO CHUẨN HIỂN THỊ TRÊN MÀN HÌNH CHỜ */
         .ui-logo-box {
-            width: 46px;
-            height: 40px;
-            background: #fff;
-            border: 2px solid #008062;
-            border-radius: 4px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 6px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.5);
-            text-shadow: none; /* Reset text shadow cho logo */
+            width: 44px;
+            margin-bottom: 8px;
+            filter: drop-shadow(0 2px 5px rgba(0,0,0,0.4));
         }
-        .ui-logo-box .seven {
-            color: #ed2939; font-size: 26px; font-weight: 900; 
-            line-height: 0.9; font-family: Arial, sans-serif; letter-spacing: -1px;
-        }
-        .ui-logo-box .eleven {
-            color: #008062; font-size: 7px; font-weight: 900; 
-            line-height: 1; font-family: Arial, sans-serif; margin-top: 1px;
+        .ui-logo-box img {
+            width: 100%;
+            height: auto;
+            display: block;
         }
 
-        #timestamp { font-size: 0.75rem; font-weight: bold; letter-spacing: 0.2px; }
-        #address { font-size: 0.55rem; font-weight: bold; margin-top: 3px; letter-spacing: 0.2px; word-wrap: break-word; }
+        #timestamp { font-size: 0.7rem; font-weight: bold; letter-spacing: 0.2px; }
+        #address { font-size: 0.5rem; font-weight: bold; margin-top: 3px; letter-spacing: 0.2px; word-wrap: break-word; }
 
         .flash-overlay { position: absolute; inset: 0; background: #fff; opacity: 0; pointer-events: none; z-index: 8; }
 
@@ -221,12 +196,12 @@
         .sheet-backdrop {
             position: fixed; inset: 0; background: rgba(0,0,0,0.4);
             backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px);
-            opacity: 0; pointer-events: none; transition: opacity 0.25s ease; z-index: 1000;
+            opacity: 0; pointer-events: none; transition: opacity 0.25s ease; z-index: 10000;
         }
         .sheet-backdrop.show { opacity: 1; pointer-events: auto; }
 
         .settings-sheet {
-            position: fixed; left: 10px; right: 10px; bottom: 0; z-index: 1001;
+            position: fixed; left: 10px; right: 10px; bottom: 0; z-index: 10001;
             color: var(--text-main); border-radius: 28px 28px 0 0; padding: 10px 18px calc(env(safe-area-inset-bottom) + 18px);
             max-height: 85vh; overflow-y: auto; background: var(--panel-fill);
             backdrop-filter: blur(34px) saturate(190%); -webkit-backdrop-filter: blur(34px) saturate(190%);
@@ -240,7 +215,7 @@
         .sheet-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
         .sheet-header h3 { color: var(--brand-green); font-size: 17px; font-weight: 800; }
         .close-btn {
-            width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--glass-border-soft);
+            width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--glass-border-soft);
             background: rgba(128,128,128,0.18); backdrop-filter: blur(10px);
             font-size: 15px; color: var(--text-muted); cursor: pointer; display: flex; align-items: center; justify-content: center;
         }
@@ -271,15 +246,13 @@
             <span class="dot pending" id="gpsDot"></span>
             <span id="brandLabel">Đang lấy vị trí…</span>
         </div>
-        <!-- Thêm id cứng và sự kiện trực tiếp để chống kẹt chạm trên iOS -->
         <button class="icon-btn glass" id="settingsBtn" aria-label="Cài đặt"><span>⚙️</span></button>
     </div>
 
     <div class="timestamp-overlay">
-        <!-- Logo 7-Eleven góc trái -->
+        <!-- Logo Vector chuẩn - Đảm bảo chạy 100% offline -->
         <div class="ui-logo-box">
-            <div class="seven">7</div>
-            <div class="eleven">ELEVEn</div>
+            <img id="logoImg" src="data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='250' height='250' viewBox='0 0 250 250'%3E%3Crect width='240' height='240' x='5' y='5' fill='%23fff' stroke='%23008062' stroke-width='6' rx='20'/%3E%3Cpath fill='%23f37021' d='M 55 50 L 205 50 L 205 90 L 55 90 Z'/%3E%3Cpath fill='%23ea2839' d='M 205 90 L 115 205 L 60 205 L 150 90 Z'/%3E%3Ctext x='125' y='145' font-family='Arial, sans-serif' font-weight='900' font-size='42' fill='%23008062' stroke='%23fff' stroke-width='2.5' stroke-linejoin='round' text-anchor='middle' letter-spacing='1'%3EELEVEn%3C/text%3E%3C/svg%3E" alt="7-Eleven Logo">
         </div>
         <div id="timestamp">--:--:--</div>
         <div id="address">Đang lấy vị trí GPS…</div>
@@ -335,11 +308,9 @@
 
     function triggerFlash() {
         const flash = document.getElementById('flashOverlay');
-        flash.style.transition = 'none';
-        flash.style.opacity = '0.85';
+        flash.style.transition = 'none'; flash.style.opacity = '0.85';
         requestAnimationFrame(() => {
-            flash.style.transition = 'opacity 0.35s ease';
-            flash.style.opacity = '0';
+            flash.style.transition = 'opacity 0.35s ease'; flash.style.opacity = '0';
         });
     }
 
@@ -351,6 +322,7 @@
         const snapBtn = document.getElementById('snapBtn');
         const fileInput = document.getElementById('fileInput');
         const uploadTrigger = document.getElementById('uploadTrigger');
+        const logoImg = document.getElementById('logoImg');
 
         const gpsDot = document.getElementById('gpsDot');
         const gpsStatusDot = document.getElementById('gpsStatusDot');
@@ -368,7 +340,7 @@
         let currentAddress = null;
         let currentCoords = null;
 
-        // XỬ LÝ NÚT CÀI ĐẶT CHẮC CHẮN HOẠT ĐỘNG
+        // Xử lý mạnh tay sự kiện chạm trên iOS để tránh kẹt nút cài đặt
         function openSettings(e) { 
             if(e) e.preventDefault(); 
             settingsSheet.classList.add('show'); 
@@ -382,14 +354,16 @@
 
         if (settingsBtn) {
             settingsBtn.addEventListener('click', openSettings);
-            // Thêm touchstart để giải quyết lỗi không phản hồi trên Safari iOS
             settingsBtn.addEventListener('touchstart', openSettings, {passive: false});
         }
         if (closeSettings) {
             closeSettings.addEventListener('click', closeSettingsSheet);
             closeSettings.addEventListener('touchstart', closeSettingsSheet, {passive: false});
         }
-        if (sheetBackdrop) sheetBackdrop.addEventListener('click', closeSettingsSheet);
+        if (sheetBackdrop) {
+            sheetBackdrop.addEventListener('click', closeSettingsSheet);
+            sheetBackdrop.addEventListener('touchstart', closeSettingsSheet, {passive: false});
+        }
 
         function getActiveTime() { return customTimeInput.value.trim() || getFormattedTime(); }
 
@@ -410,74 +384,43 @@
             }
         });
 
-        // Hàm vẽ logo 7-11 bằng code (không bao giờ bị lỗi ảnh)
-        function draw7ElevenLogo(ctx, x, y, size) {
-            const width = size;
-            const height = size * 0.88;
-            ctx.save();
-            ctx.shadowColor = 'rgba(0,0,0,0.4)';
-            ctx.shadowBlur = 8;
-            
-            ctx.fillStyle = '#ffffff';
-            if (ctx.roundRect) {
-                ctx.beginPath();
-                ctx.roundRect(x, y, width, height, size * 0.08);
-                ctx.fill();
-            } else {
-                ctx.fillRect(x, y, width, height);
-            }
-            ctx.shadowBlur = 0;
-            
-            ctx.strokeStyle = '#008062';
-            ctx.lineWidth = Math.max(2, size * 0.04);
-            if (ctx.roundRect) ctx.stroke(); else ctx.strokeRect(x, y, width, height);
-            
-            ctx.fillStyle = '#ed2939';
-            ctx.font = `900 ${size * 0.65}px Arial, sans-serif`;
-            ctx.textAlign = 'center';
-            ctx.fillText('7', x + width * 0.5, y + height * 0.68);
-            
-            ctx.fillStyle = '#008062';
-            ctx.font = `900 ${size * 0.17}px Arial, sans-serif`;
-            ctx.fillText('ELEVEn', x + width * 0.5, y + height * 0.88);
-            ctx.restore();
-            return height;
-        }
-
         async function drawWatermarkAndDownload(sourceElement, isVideoSource) {
             const finalAddress = customAddressInput.value.trim() || currentAddress;
-            if (!finalAddress) return alert("Chưa có GPS. Vui lòng đợi hoặc nhập tay.");
+            if (!finalAddress) return alert("Chưa có GPS. Vui lòng đợi hoặc nhập tay trong Cài đặt.");
 
             const imgW = isVideoSource ? sourceElement.videoWidth : sourceElement.naturalWidth;
             const imgH = isVideoSource ? sourceElement.videoHeight : sourceElement.naturalHeight;
+            
             const ctx = canvas.getContext('2d');
             canvas.width = imgW; canvas.height = imgH;
+            ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
             ctx.drawImage(sourceElement, 0, 0, canvas.width, canvas.height);
 
             const baseSize = Math.min(canvas.width, canvas.height);
             
-            // THU NHỎ KÍCH THƯỚC CHỮ XUỐNG CÒN KHOẢNG 60% SO VỚI BẢN CŨ
-            const padding = Math.floor(baseSize * 0.025);
+            // THIẾT LẬP KÍCH THƯỚC CHỮ SIÊU NHỎ VÀ CĂN GÓC TRÁI
+            const padding = Math.floor(baseSize * 0.03); 
             const fontSizeTime = Math.floor(baseSize * 0.022); 
             const fontSizeAddr = Math.floor(baseSize * 0.015);
             const finalTimeText = getActiveTime();
 
-            ctx.strokeStyle = '#000000'; ctx.fillStyle = '#FFFFFF';
-            ctx.lineJoin = 'round'; ctx.miterLimit = 2;
-
-            // Tính toán toạ độ Y từ dưới lên (ép góc trái)
+            // Tính toạ độ các lớp từ dưới lên (ép lề trái)
             const addrY = canvas.height - padding;
             const timeY = addrY - fontSizeAddr - Math.floor(baseSize * 0.012);
             
-            // Vẽ Logo
-            const logoSize = Math.floor(baseSize * 0.1); // Logo chiếm 10% chiều ngang
-            const logoHeight = logoSize * 0.88;
+            // Vẽ Logo góc trái (Phía trên phần chữ)
+            const logoWidth = Math.floor(baseSize * 0.09); // Kích thước logo
+            const logoHeight = logoWidth; // Vì SVG tỉ lệ 1:1 (250x250)
             const logoY = timeY - fontSizeTime - logoHeight - Math.floor(baseSize * 0.012);
-            
-            draw7ElevenLogo(ctx, padding, logoY, logoSize);
+
+            if (logoImg && logoImg.complete) {
+                ctx.drawImage(logoImg, padding, logoY, logoWidth, logoHeight);
+            }
 
             // Vẽ Chữ (Text)
             ctx.textAlign = 'left';
+            ctx.strokeStyle = '#000000'; ctx.fillStyle = '#FFFFFF';
+            ctx.lineJoin = 'round'; ctx.miterLimit = 2;
 
             ctx.font = `bold ${fontSizeAddr}px 'Share Tech Mono', monospace`;
             ctx.lineWidth = Math.max(2, Math.floor(fontSizeAddr * 0.15));
