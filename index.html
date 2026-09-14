@@ -5,16 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>59 Trương Định - Camera Timestamp</title>
+    <title>Camera Timestamp (Giờ thực + GPS thực)</title>
 
-    <!-- Icon 7-Eleven trên Tab trình duyệt -->
-    <link class="app-icon" rel="icon" href="https://upload.wikimedia.org/wikipedia/commons/thumb/4/40/7-eleven_logo.svg/1280px-7-eleven_logo.svg.png">
-
-    <!-- Nhúng font chữ phong cách kỹ thuật số cho lớp hiển thị thời gian -->
     <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
 
     <style>
-        /* CSS Reset & Font */
         * {
             box-sizing: border-box;
             margin: 0;
@@ -23,27 +18,21 @@
             -webkit-tap-highlight-color: transparent;
         }
 
-        /* BẢNG BIẾN MÀU SẮC CHUẨN 7-ELEVEN + BIẾN KÍNH LỎNG (Liquid Glass) */
         :root {
-            --7e-green: #008062;
-            --7e-orange: #F37021;
-            --7e-red: #E2231A;
+            --brand-green: #008062;
+            --brand-orange: #F37021;
             --bg-main: #F4F5F7;
             --bg-card: #ffffff;
             --text-main: #333;
             --text-muted: #666;
             --border-color: rgba(0,0,0,0.08);
-            --input-border: #ccc;
 
-            /* Vật liệu kính lỏng — lớp control nổi trên nền camera (luôn sáng, tương phản trên nền tối) */
             --glass-fill: rgba(255,255,255,0.14);
             --glass-fill-strong: rgba(255,255,255,0.22);
             --glass-border: rgba(255,255,255,0.4);
             --glass-border-soft: rgba(255,255,255,0.16);
-            --glass-shine: rgba(255,255,255,0.85);
             --glass-shadow: 0 8px 28px rgba(0,0,0,0.35), 0 1px 2px rgba(0,0,0,0.2);
 
-            /* Vật liệu kính lỏng dày — dùng cho tấm cài đặt lớn */
             --panel-fill: rgba(255,255,255,0.62);
             --panel-border: rgba(255,255,255,0.65);
         }
@@ -54,8 +43,6 @@
             --text-main: #f1f1f1;
             --text-muted: #aaa;
             --border-color: rgba(255,255,255,0.1);
-            --input-border: #555;
-
             --panel-fill: rgba(30,30,34,0.6);
             --panel-border: rgba(255,255,255,0.16);
         }
@@ -67,11 +54,8 @@
             background: #000;
         }
 
-        body {
-            color: var(--text-main);
-        }
+        body { color: var(--text-main); }
 
-        /* ============ KHUNG CAMERA TOÀN MÀN HÌNH ============ */
         .app-container {
             position: fixed;
             inset: 0;
@@ -91,7 +75,6 @@
             display: block;
         }
 
-        /* Dải mờ trên cùng giúp icon dễ đọc trên nền camera sáng */
         .top-gradient {
             position: absolute;
             top: 0; left: 0; right: 0;
@@ -101,9 +84,6 @@
             z-index: 3;
         }
 
-        /* ============ VẬT LIỆU KÍNH LỎNG DÙNG CHUNG ============ */
-        /* Mọi control nổi (pill thương hiệu, nút icon, nút thumbnail) dùng chung "chất liệu" kính:
-           nền mờ + backdrop-filter khúc xạ nền phía sau + viền sáng phía trên mô phỏng ánh phản chiếu */
         .glass {
             background: var(--glass-fill);
             backdrop-filter: blur(22px) saturate(180%);
@@ -113,7 +93,6 @@
             box-shadow: var(--glass-shadow), inset 0 1px 0 rgba(255,255,255,0.5), inset 0 -1px 0 rgba(255,255,255,0.04);
             position: relative;
         }
-        /* Vệt sáng khúc xạ chạy chéo phía trên mỗi mặt kính — mô phỏng "lensing" của Liquid Glass */
         .glass::before {
             content: '';
             position: absolute;
@@ -123,7 +102,6 @@
             pointer-events: none;
         }
 
-        /* Thanh trên cùng: thương hiệu + nút cài đặt */
         .top-bar {
             position: absolute;
             top: 0; left: 0; right: 0;
@@ -142,8 +120,11 @@
             border-radius: 999px;
             overflow: hidden;
         }
-        .brand-pill img { height: 22px; width: auto; display: block; position: relative; z-index: 1; filter: drop-shadow(0 1px 1px rgba(0,0,0,0.2)); }
-        .brand-pill span { color: #fff; font-size: 13px; font-weight: 800; letter-spacing: 0.2px; position: relative; z-index: 1; text-shadow: 0 1px 3px rgba(0,0,0,0.35); }
+        .brand-pill span { color: #fff; font-size: 12px; font-weight: 700; letter-spacing: 0.2px; position: relative; z-index: 1; text-shadow: 0 1px 3px rgba(0,0,0,0.35); }
+        .brand-pill .dot { width: 8px; height: 8px; border-radius: 50%; background: #2ecc71; position: relative; z-index: 1; flex-shrink: 0; }
+        .brand-pill .dot.err { background: #e74c3c; }
+        .brand-pill .dot.pending { background: #f1c40f; animation: pulse 1.2s infinite; }
+        @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.3;} }
 
         .icon-btn {
             width: 42px;
@@ -163,7 +144,6 @@
         .icon-btn > span { position: relative; z-index: 1; }
         .icon-btn:active { transform: scale(0.9); }
 
-        /* Lớp phủ chữ trắng viền đen sắc nét (đóng dấu thời gian/địa chỉ) */
         .timestamp-overlay {
             position: absolute;
             bottom: calc(env(safe-area-inset-bottom) + 132px);
@@ -172,42 +152,23 @@
             font-family: 'Share Tech Mono', monospace;
             color: #FFF;
             pointer-events: none;
-            line-height: 1.4;
+            line-height: 1.35;
             text-shadow:
-                -1.5px -1.5px 0 #000,
-                 1.5px -1.5px 0 #000,
-                -1.5px  1.5px 0 #000,
-                 1.5px  1.5px 0 #000,
-                 0px    1.5px 0 #000,
-                 0px   -1.5px 0 #000,
-                 1.5px  0px 0 #000,
-                -1.5px  0px 0 #000;
+                -1.2px -1.2px 0 #000,
+                 1.2px -1.2px 0 #000,
+                -1.2px  1.2px 0 #000,
+                 1.2px  1.2px 0 #000,
+                 0px    1.2px 0 #000,
+                 0px   -1.2px 0 #000,
+                 1.2px  0px 0 #000,
+                -1.2px  0px 0 #000;
             z-index: 5;
             transition: bottom 0.2s ease, right 0.2s ease;
         }
 
-        #timestamp { font-size: 1.25rem; font-weight: bold; letter-spacing: 0.5px; }
-        #address { font-size: 0.82rem; font-weight: bold; margin-top: 2px; letter-spacing: 0.3px; word-wrap: break-word; }
+        #timestamp { font-size: 0.82rem; font-weight: bold; letter-spacing: 0.4px; }
+        #address { font-size: 0.62rem; font-weight: bold; margin-top: 2px; letter-spacing: 0.2px; word-wrap: break-word; }
 
-        /* Logo góc trên (xem trước dấu đóng vào ảnh) — thẻ kính nhỏ */
-        .logo-overlay-wrap {
-            position: absolute;
-            top: calc(env(safe-area-inset-top) + 66px);
-            right: 15px;
-            padding: 6px;
-            border-radius: 12px;
-            z-index: 5;
-            pointer-events: none;
-        }
-        .logo-overlay {
-            height: 32px;
-            width: auto;
-            display: block;
-            position: relative;
-            z-index: 1;
-        }
-
-        /* Hiệu ứng nháy đèn flash khi chụp */
         .flash-overlay {
             position: absolute;
             inset: 0;
@@ -217,8 +178,6 @@
             z-index: 8;
         }
 
-        /* ============ CỤM ĐIỀU KHIỂN (kiểu Camera iPad, chất liệu kính lỏng) ============ */
-        /* Mặc định - máy nằm DỌC: thanh ngang phía dưới, nút chụp CHÍNH GIỮA */
         .controls-bar {
             position: absolute;
             left: 0; right: 0; bottom: 0;
@@ -247,7 +206,6 @@
             transition: transform 0.12s ease;
         }
         .shutter-btn::before {
-            /* vệt sáng khúc xạ trên vành kính */
             content: '';
             position: absolute;
             inset: 0;
@@ -260,12 +218,13 @@
             position: absolute;
             inset: 5px;
             border-radius: 50%;
-            background: radial-gradient(circle at 32% 28%, #ff5147, var(--7e-red) 60%, #c21b13 100%);
+            background: radial-gradient(circle at 32% 28%, #5aa, var(--brand-green) 60%, #005940 100%);
             box-shadow: inset 0 2px 3px rgba(255,255,255,0.5), inset 0 -3px 6px rgba(0,0,0,0.25);
             transition: transform 0.12s ease, border-radius 0.12s ease;
         }
         .shutter-btn:active { transform: scale(0.95); }
         .shutter-btn:active::after { transform: scale(0.84); border-radius: 40%; }
+        .shutter-btn[disabled] { opacity: 0.5; pointer-events: none; filter: grayscale(1); }
 
         .thumb-btn {
             width: 48px;
@@ -284,23 +243,12 @@
         .thumb-btn > span { position: relative; z-index: 1; filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3)); }
         .thumb-btn:active { transform: scale(0.9); }
 
-        /* Ô đệm vô hình để giữ nút chụp luôn ở chính giữa */
-        .ghost-slot {
-            width: 48px;
-            height: 48px;
-            visibility: hidden;
-            flex-shrink: 0;
-        }
+        .ghost-slot { width: 48px; height: 48px; visibility: hidden; flex-shrink: 0; }
 
-        /* máy nằm NGANG: cụm điều khiển dồn sang mép phải, nút chụp giữa theo chiều dọc */
         @media (orientation: landscape) {
             .controls-bar {
-                left: auto;
-                bottom: 0;
-                top: 0;
-                right: 0;
-                width: auto;
-                height: 100%;
+                left: auto; bottom: 0; top: 0; right: 0;
+                width: auto; height: 100%;
                 flex-direction: column;
                 justify-content: center;
                 align-items: center;
@@ -313,7 +261,6 @@
             }
         }
 
-        /* ============ TẤM CÀI ĐẶT (Bottom Sheet — kính lỏng "standard", dày & khúc xạ mạnh hơn) ============ */
         .sheet-backdrop {
             position: fixed;
             inset: 0;
@@ -334,64 +281,39 @@
             color: var(--text-main);
             border-radius: 28px 28px 0 0;
             padding: 10px 18px calc(env(safe-area-inset-bottom) + 18px);
-            max-height: 82vh;
+            max-height: 85vh;
             overflow-y: auto;
-
             background: var(--panel-fill);
             backdrop-filter: blur(34px) saturate(190%);
             -webkit-backdrop-filter: blur(34px) saturate(190%);
             border: 1px solid var(--panel-border);
             border-bottom: none;
             box-shadow: 0 -16px 44px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.6);
-
             transform: translateY(115%);
             transition: transform 0.35s cubic-bezier(.32,.9,.4,1);
         }
         .settings-sheet.show { transform: translateY(0); }
 
-        .sheet-handle {
-            width: 38px;
-            height: 5px;
-            border-radius: 3px;
-            background: var(--text-muted);
-            opacity: 0.4;
-            margin: 6px auto 14px;
-        }
+        .sheet-handle { width: 38px; height: 5px; border-radius: 3px; background: var(--text-muted); opacity: 0.4; margin: 6px auto 14px; }
 
-        .sheet-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 12px;
-        }
-        .sheet-header h3 { color: var(--7e-green); font-size: 17px; font-weight: 800; }
+        .sheet-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+        .sheet-header h3 { color: var(--brand-green); font-size: 17px; font-weight: 800; }
         .close-btn {
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
+            width: 30px; height: 30px; border-radius: 50%;
             border: 1px solid var(--glass-border-soft);
             background: rgba(128,128,128,0.18);
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
-            font-size: 15px;
-            color: var(--text-muted);
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            font-size: 15px; color: var(--text-muted); cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
         }
 
         .theme-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 10px 4px 18px;
-            border-bottom: 1px solid var(--border-color);
-            margin-bottom: 16px;
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 10px 4px 18px; border-bottom: 1px solid var(--border-color); margin-bottom: 16px;
         }
         .theme-row span { font-size: 14px; font-weight: bold; }
 
-        /* Công tắc chuyển đổi giao diện — chất liệu kính */
         .switch { position: relative; display: inline-block; width: 48px; height: 28px; flex-shrink: 0; }
         .switch input { opacity: 0; width: 0; height: 0; }
         .switch-track {
@@ -405,8 +327,7 @@
         .switch-track::before {
             content: "";
             position: absolute;
-            height: 22px; width: 22px;
-            left: 2px; bottom: 2px;
+            height: 22px; width: 22px; left: 2px; bottom: 2px;
             background: linear-gradient(160deg, #ffffff, #e6e6e6);
             border-radius: 50%;
             box-shadow: 0 2px 4px rgba(0,0,0,0.3), inset 0 1px 1px rgba(255,255,255,0.8);
@@ -415,34 +336,34 @@
         .switch input:checked + .switch-track { background: rgba(0,128,98,0.55); border-color: rgba(255,255,255,0.4); }
         .switch input:checked + .switch-track::before { transform: translateX(20px); }
 
-        /* Khu vực ô nhập liệu — hốc kính lõm (utility glass) */
-        .input-group { margin-bottom: 15px; text-align: left; }
-        .input-label {
-            font-size: 12px;
-            font-weight: bold;
-            color: var(--7e-green);
-            margin-bottom: 6px;
-            display: block;
-            letter-spacing: 0.3px;
+        /* Bổ sung style cho phần nhập liệu tuỳ chỉnh */
+        .input-group {
+            display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px;
         }
-        .address-textbox {
-            width: 100%;
-            padding: 12px 14px;
-            font-size: 14px;
-            border: 1px solid rgba(128,128,128,0.22);
-            border-radius: 14px;
-            background: rgba(128,128,128,0.10);
-            color: var(--text-main);
-            outline: none;
-            box-shadow: inset 0 1px 3px rgba(0,0,0,0.08);
-            transition: 0.2s;
+        .input-group label {
+            font-size: 13px; font-weight: bold; color: var(--text-main); margin-left: 4px;
         }
-        .address-textbox:focus {
-            border-color: var(--7e-orange);
-            box-shadow: inset 0 1px 3px rgba(0,0,0,0.08), 0 0 0 3px rgba(243, 112, 33, 0.18);
+        .input-group input {
+            width: 100%; padding: 12px 14px; border-radius: 12px;
+            border: 1px solid var(--border-color);
+            background: rgba(128,128,128,0.08); color: var(--text-main);
+            font-size: 14px; outline: none; transition: border-color 0.2s;
         }
+        .input-group input:focus { border-color: var(--brand-green); }
+        .input-group input::placeholder { color: var(--text-muted); opacity: 0.7; }
 
-        /* Canvas ẩn phục vụ render ảnh */
+        .status-row { display: flex; flex-direction: column; gap: 10px; margin-bottom: 6px; border-top: 1px solid var(--border-color); padding-top: 16px; }
+        .status-line {
+            display: flex; align-items: center; gap: 8px;
+            font-size: 13px; color: var(--text-muted);
+            padding: 10px 12px; border-radius: 12px;
+            background: rgba(128,128,128,0.10);
+        }
+        .status-line b { color: var(--text-main); font-weight: 700; }
+        .status-dot { width: 9px; height: 9px; border-radius: 50%; background: #2ecc71; flex-shrink: 0; }
+        .status-dot.err { background: #e74c3c; }
+        .status-dot.pending { background: #f1c40f; animation: pulse 1.2s infinite; }
+
         canvas { display: none; }
     </style>
 </head>
@@ -455,27 +376,22 @@
 
     <div class="top-bar">
         <div class="brand-pill glass">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/4/40/7-eleven_logo.svg" alt="7-Eleven Logo">
-            <span>59 Trương Định</span>
+            <span class="dot pending" id="gpsDot"></span>
+            <span id="brandLabel">Đang lấy vị trí…</span>
         </div>
         <button class="icon-btn glass" id="settingsBtn" aria-label="Cài đặt"><span>⚙️</span></button>
     </div>
 
     <div class="timestamp-overlay">
-        <div id="timestamp">0000-00-00 00:00:00</div>
-        <div id="address">59 Trương Định P.Bến Thành TP.Hồ Chí Minh</div>
-    </div>
-
-    <div class="logo-overlay-wrap glass">
-        <img id="logoSource" crossorigin="anonymous" src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/40/7-eleven_logo.svg/120px-7-eleven_logo.svg.png" class="logo-overlay" alt="7E Logo">
+        <div id="timestamp">--:--:--</div>
+        <div id="address">Đang lấy vị trí GPS…</div>
     </div>
 
     <div class="flash-overlay" id="flashOverlay"></div>
 
-    <!-- Cụm điều khiển kiểu Camera iPad, chất liệu kính lỏng: dọc -> giữa dưới, ngang -> giữa bên phải -->
     <div class="controls-bar">
         <button class="thumb-btn glass" id="uploadTrigger" aria-label="Đóng dấu ảnh có sẵn"><span>🖼️</span></button>
-        <button class="shutter-btn" id="snapBtn" aria-label="Chụp ảnh"></button>
+        <button class="shutter-btn" id="snapBtn" aria-label="Chụp ảnh" disabled></button>
         <div class="ghost-slot"></div>
     </div>
 </div>
@@ -483,7 +399,6 @@
 <input type="file" id="fileInput" accept="image/*" style="display: none;">
 <canvas id="canvas"></canvas>
 
-<!-- Tấm cài đặt: đổi giờ, đổi địa chỉ, đổi giao diện -->
 <div class="sheet-backdrop" id="sheetBackdrop"></div>
 <div class="settings-sheet" id="settingsSheet">
     <div class="sheet-handle"></div>
@@ -500,19 +415,24 @@
         </label>
     </div>
 
+    <!-- Khu vực thêm mới: Input tuỳ chỉnh thời gian và địa điểm -->
     <div class="input-group">
-        <label class="input-label" for="addressInput">📍 Địa chỉ hiển thị trên ảnh</label>
-        <input type="text" id="addressInput" class="address-textbox" value="59 Trương Định P.Bến Thành TP.Hồ Chí Minh" placeholder="Nhập địa chỉ hoặc ghi chú ca làm việc...">
+        <label>Thời gian (Tuỳ chỉnh):</label>
+        <input type="text" id="customTimeInput" placeholder="VD: 2026-09-15 08:30:00 (Để trống tự động lấy giờ thực)">
+    </div>
+    
+    <div class="input-group">
+        <label>Địa điểm (Tuỳ chỉnh):</label>
+        <input type="text" id="customAddressInput" placeholder="Nhập địa chỉ muốn thay đổi... (Để trống tự động lấy GPS)">
     </div>
 
-    <div class="input-group">
-        <label class="input-label" for="timeInput">⏱️ Thời gian hiển thị (để trống nếu dùng giờ thực)</label>
-        <input type="text" id="timeInput" class="address-textbox" value="" placeholder="Để trống để tự động lấy giờ hiện tại...">
+    <div class="status-row">
+        <div class="status-line"><span class="status-dot" id="timeDot"></span> Nguồn giờ: <b id="timeStatus">Hệ thống (Tự động)</b></div>
+        <div class="status-line"><span class="status-dot pending" id="gpsStatusDot"></span> Nguồn vị trí: <b id="gpsStatus">Đang xác định qua GPS…</b></div>
     </div>
 </div>
 
 <script>
-    // Quản lý giao diện Sáng/Tối
     function toggleTheme(isDark) {
         const newTheme = isDark ? 'dark' : 'light';
         document.documentElement.setAttribute('data-theme', newTheme);
@@ -526,7 +446,6 @@
         if (themeSwitch) themeSwitch.checked = savedTheme === 'dark';
     }
 
-    // Lấy thời gian hiện tại định dạng chuẩn
     function getFormattedTime() {
         const now = new Date();
         const year = now.getFullYear();
@@ -538,13 +457,11 @@
         return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
     }
 
-    // Âm thanh màn trập camera (Web Audio API)
     function playShutterSound() {
         try {
             const AudioContext = window.AudioContext || window.webkitAudioContext;
             if (!AudioContext) return;
             const audioCtx = new AudioContext();
-
             const osc = audioCtx.createOscillator();
             const oscGain = audioCtx.createGain();
             osc.type = 'triangle';
@@ -577,7 +494,6 @@
         } catch (e) { console.log(e); }
     }
 
-    // Hiệu ứng nháy đèn flash khi bấm chụp
     function triggerFlash() {
         const flash = document.getElementById('flashOverlay');
         if (!flash) return;
@@ -596,61 +512,139 @@
         const canvas = document.getElementById('canvas');
         const timestampDiv = document.getElementById('timestamp');
         const addressDiv = document.getElementById('address');
-        const addressInput = document.getElementById('addressInput');
-        const timeInput = document.getElementById('timeInput');
         const snapBtn = document.getElementById('snapBtn');
         const fileInput = document.getElementById('fileInput');
         const uploadTrigger = document.getElementById('uploadTrigger');
-        const logoSource = document.getElementById('logoSource');
         const themeSwitch = document.getElementById('themeSwitch');
 
-        // Mở / đóng tấm cài đặt (nơi ẩn phần đổi giờ, địa chỉ, giao diện)
+        const brandLabel = document.getElementById('brandLabel');
+        const gpsDot = document.getElementById('gpsDot');
+        const gpsStatusDot = document.getElementById('gpsStatusDot');
+        const gpsStatus = document.getElementById('gpsStatus');
+
         const settingsBtn = document.getElementById('settingsBtn');
         const settingsSheet = document.getElementById('settingsSheet');
         const sheetBackdrop = document.getElementById('sheetBackdrop');
         const closeSettings = document.getElementById('closeSettings');
+        
+        // Element nhận dữ liệu tuỳ chỉnh
+        const customTimeInput = document.getElementById('customTimeInput');
+        const customAddressInput = document.getElementById('customAddressInput');
 
-        function openSettings() {
-            settingsSheet.classList.add('show');
-            sheetBackdrop.classList.add('show');
-        }
-        function closeSettingsSheet() {
-            settingsSheet.classList.remove('show');
-            sheetBackdrop.classList.remove('show');
-        }
+        let currentAddress = null;
+        let currentCoords = null;
+
+        function openSettings() { settingsSheet.classList.add('show'); sheetBackdrop.classList.add('show'); }
+        function closeSettingsSheet() { settingsSheet.classList.remove('show'); sheetBackdrop.classList.remove('show'); }
         if (settingsBtn) settingsBtn.addEventListener('click', openSettings);
         if (closeSettings) closeSettings.addEventListener('click', closeSettingsSheet);
         if (sheetBackdrop) sheetBackdrop.addEventListener('click', closeSettingsSheet);
-
         if (themeSwitch) themeSwitch.addEventListener('change', () => toggleTheme(themeSwitch.checked));
 
-        // Đồng bộ dữ liệu hiển thị từ TextBox lên khung Viewfinder
-        if (addressInput && addressDiv) {
-            addressDiv.innerText = addressInput.value;
-            addressInput.addEventListener('input', () => { addressDiv.innerText = addressInput.value; });
+        // Hàm lấy Giờ sẽ đóng dấu (Ưu tiên ô nhập tay, nếu trống thì lấy giờ thật)
+        function getActiveTime() {
+            return customTimeInput.value.trim() || getFormattedTime();
         }
 
-        if (timeInput && timestampDiv) {
-            timeInput.addEventListener('input', () => {
-                const userTime = timeInput.value.trim();
-                timestampDiv.innerText = userTime !== "" ? userTime : getFormattedTime();
-            });
-        }
-
-        // Vòng lặp đồng hồ thời gian thực
+        // Lặp thời gian để cập nhật lên UI
         if (timestampDiv) {
-            timestampDiv.innerText = (timeInput && timeInput.value.trim() !== "") ? timeInput.value.trim() : getFormattedTime();
-            setInterval(() => {
-                if (timeInput && timeInput.value.trim() === "") { timestampDiv.innerText = getFormattedTime(); }
-            }, 1000);
+            timestampDiv.innerText = getActiveTime();
+            setInterval(() => { timestampDiv.innerText = getActiveTime(); }, 1000);
         }
 
-        // Khởi tạo luồng Camera trực tiếp (toàn màn hình, tự phủ kín khung hình)
+        // Lắng nghe thay đổi khi người dùng nhập Giờ tuỳ chỉnh
+        customTimeInput.addEventListener('input', () => {
+            const val = customTimeInput.value.trim();
+            document.getElementById('timeStatus').innerText = val ? 'Tuỳ chỉnh thủ công' : 'Hệ thống (Tự động)';
+            timestampDiv.innerText = getActiveTime();
+        });
+
+        // Lắng nghe thay đổi khi người dùng nhập Địa điểm tuỳ chỉnh
+        customAddressInput.addEventListener('input', () => {
+            const customVal = customAddressInput.value.trim();
+            if (customVal) {
+                gpsStatus.innerText = 'Tuỳ chỉnh thủ công';
+                gpsStatusDot.className = 'status-dot';
+                addressDiv.innerText = customVal;
+                snapBtn.removeAttribute('disabled');
+            } else {
+                if (currentAddress) {
+                    gpsStatus.innerText = 'GPS thực tế';
+                    gpsStatusDot.className = 'status-dot';
+                    addressDiv.innerText = `${currentAddress} (${currentCoords.lat.toFixed(5)}, ${currentCoords.lon.toFixed(5)})`;
+                    snapBtn.removeAttribute('disabled');
+                } else {
+                    gpsStatus.innerText = 'Đang xác định qua GPS…';
+                    gpsStatusDot.className = 'status-dot pending';
+                    addressDiv.innerText = 'Đang lấy vị trí GPS…';
+                    snapBtn.setAttribute('disabled', 'true');
+                }
+            }
+        });
+
+        function setGpsError(msg) {
+            gpsDot.className = 'dot err';
+            brandLabel.innerText = 'Không lấy được vị trí';
+            
+            // Chỉ cập nhật lỗi nếu người dùng không dùng định vị tuỳ chỉnh
+            if (!customAddressInput.value.trim()) {
+                gpsStatusDot.className = 'status-dot err';
+                gpsStatus.innerText = msg;
+                addressDiv.innerText = msg;
+                snapBtn.setAttribute('disabled', 'true');
+            }
+        }
+
+        function setGpsSuccess(address, lat, lon) {
+            currentAddress = address;
+            currentCoords = { lat, lon };
+            gpsDot.className = 'dot';
+            brandLabel.innerText = address;
+
+            // Nếu người dùng không nhập tay địa chỉ thì ưu tiên hiển thị GPS thật
+            if (!customAddressInput.value.trim()) {
+                gpsStatusDot.className = 'status-dot';
+                gpsStatus.innerText = 'GPS thực tế';
+                addressDiv.innerText = `${address} (${lat.toFixed(5)}, ${lon.toFixed(5)})`;
+                snapBtn.removeAttribute('disabled');
+            }
+        }
+
+        async function reverseGeocode(lat, lon) {
+            try {
+                const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}&accept-language=vi`;
+                const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
+                const data = await res.json();
+                return data && data.display_name ? data.display_name : `${lat.toFixed(5)}, ${lon.toFixed(5)}`;
+            } catch (e) {
+                return `${lat.toFixed(5)}, ${lon.toFixed(5)}`;
+            }
+        }
+
+        function initGPS() {
+            if (!navigator.geolocation) {
+                setGpsError('Thiết bị không hỗ trợ GPS');
+                return;
+            }
+            navigator.geolocation.watchPosition(
+                async (pos) => {
+                    const { latitude, longitude } = pos.coords;
+                    const address = await reverseGeocode(latitude, longitude);
+                    setGpsSuccess(address, latitude, longitude);
+                },
+                (err) => {
+                    setGpsError('Cần cấp quyền truy cập vị trí để chụp ảnh');
+                },
+                { enableHighAccuracy: true, maximumAge: 10000, timeout: 20000 }
+            );
+        }
+        initGPS();
+
         async function initCamera() {
             if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return;
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({
-                    video: { facingMode: 'environment', width: { ideal: 3840 }, height: { ideal: 2160 } },
+                    video: { facingMode: 'environment', width: { ideal: 4096 }, height: { ideal: 2304 } },
                     audio: false
                 });
                 if (video) video.srcObject = stream;
@@ -663,8 +657,15 @@
         }
         initCamera();
 
-        // Cập nhật hàm xử lý: Thêm Web Share API để cải thiện việc lưu vào Thư viện ảnh
         async function drawWatermarkAndDownload(sourceElement, isVideoSource) {
+            // Lấy địa điểm tuỳ chỉnh, nếu không có thì lấy GPS thực tế
+            const finalAddress = customAddressInput.value.trim() || currentAddress;
+
+            if (!finalAddress) {
+                alert("Chưa xác định được vị trí. Vui lòng đợi GPS hoặc nhập địa chỉ thủ công trong Cài đặt.");
+                return;
+            }
+
             const imgWidth = isVideoSource ? sourceElement.videoWidth : sourceElement.naturalWidth;
             const imgHeight = isVideoSource ? sourceElement.videoHeight : sourceElement.naturalHeight;
 
@@ -673,79 +674,54 @@
                 return;
             }
 
-            // Phát tiếng âm thanh chụp ảnh
             playShutterSound();
 
             const ctx = canvas.getContext('2d');
             canvas.width = imgWidth;
             canvas.height = imgHeight;
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = 'high';
 
-            // 1. Vẽ ảnh gốc vào canvas
             ctx.drawImage(sourceElement, 0, 0, canvas.width, canvas.height);
 
-            // Tính toán tỷ lệ font chữ thông minh theo cạnh ngắn nhất của ảnh
             const baseSize = Math.min(canvas.width, canvas.height);
-            const timeText = (timeInput && timeInput.value.trim() !== "") ? timeInput.value.trim() : getFormattedTime();
-            const activeAddress = addressInput ? addressInput.value : "";
+            
+            // Lấy giờ tuỳ chỉnh hoặc giờ thực thế ngay lúc bấm chụp
+            const finalTimeText = getActiveTime(); 
 
-            const fontSizeTime = Math.floor(baseSize * 0.055);
-            const fontSizeAddr = Math.floor(baseSize * 0.038);
-            const padding = Math.floor(baseSize * 0.04);
+            const fontSizeTime = Math.floor(baseSize * 0.036);
+            const fontSizeAddr = Math.floor(baseSize * 0.024);
+            const padding = Math.floor(baseSize * 0.035);
 
             ctx.strokeStyle = '#000000';
             ctx.fillStyle = '#FFFFFF';
             ctx.lineJoin = 'round';
             ctx.miterLimit = 2;
 
-            // 2. Vẽ dòng địa chỉ (Dưới cùng)
             ctx.font = `bold ${fontSizeAddr}px 'Share Tech Mono', monospace`;
             const addrY = canvas.height - padding;
-            ctx.lineWidth = Math.max(3, Math.floor(fontSizeAddr * 0.16));
-            ctx.strokeText(activeAddress, padding, addrY);
-            ctx.fillText(activeAddress, padding, addrY);
+            ctx.lineWidth = Math.max(2, Math.floor(fontSizeAddr * 0.14));
+            ctx.strokeText(finalAddress, padding, addrY);
+            ctx.fillText(finalAddress, padding, addrY);
 
-            // 3. Vẽ dòng thời gian (Trên dòng địa chỉ)
             ctx.font = `bold ${fontSizeTime}px 'Share Tech Mono', monospace`;
-            const timeY = addrY - fontSizeAddr - Math.floor(baseSize * 0.02);
-            ctx.lineWidth = Math.max(4, Math.floor(fontSizeTime * 0.16));
-            ctx.strokeText(timeText, padding, timeY);
-            ctx.fillText(timeText, padding, timeY);
+            const timeY = addrY - fontSizeAddr - Math.floor(baseSize * 0.018);
+            ctx.lineWidth = Math.max(3, Math.floor(fontSizeTime * 0.14));
+            ctx.strokeText(finalTimeText, padding, timeY);
+            ctx.fillText(finalTimeText, padding, timeY);
 
-            // 4. Vẽ Logo 7-Eleven góc trên bên phải
-            if (logoSource) {
-                const logoSize = Math.floor(baseSize * 0.13);
-                const logoX = canvas.width - logoSize - padding;
-                const logoY = padding;
-
-                ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
-                ctx.beginPath();
-                ctx.roundRect(logoX - 4, logoY - 4, logoSize + 8, logoSize + 8, Math.max(2, Math.floor(baseSize * 0.015)));
-                ctx.fill();
-
-                ctx.drawImage(logoSource, logoX, logoY, logoSize, logoSize);
-            }
-
-            // 5. Xuất ảnh và xử lý lưu/chia sẻ
             canvas.toBlob(async (blob) => {
                 if (!blob) return;
-                const fileName = isVideoSource ? `7E_Snap_${Date.now()}.jpg` : `7E_Watermarked_${Date.now()}.jpg`;
+                const fileName = isVideoSource ? `Snap_${Date.now()}.jpg` : `Watermarked_${Date.now()}.jpg`;
                 const file = new File([blob], fileName, { type: 'image/jpeg' });
 
-                // Ưu tiên dùng Web Share API nếu trình duyệt hỗ trợ (hỗ trợ lưu thẳng vào Photos trên điện thoại)
                 if (navigator.canShare && navigator.canShare({ files: [file] })) {
                     try {
-                        await navigator.share({
-                            files: [file],
-                            title: '7-Eleven Timestamp',
-                            text: 'Ảnh chấm công'
-                        });
+                        await navigator.share({ files: [file], title: 'Ảnh chấm công', text: 'Ảnh chấm công' });
                         return;
-                    } catch (err) {
-                        // Nếu user hủy, vẫn thực hiện tải về dự phòng
-                    }
+                    } catch (err) { /* Bỏ qua nếu lỗi share để gọi tải xuống fallback */ }
                 }
 
-                // Fallback: Tải về truyền thống
                 const dataURL = URL.createObjectURL(blob);
                 const downloadLink = document.createElement('a');
                 downloadLink.download = fileName;
@@ -754,10 +730,9 @@
                 downloadLink.click();
                 document.body.removeChild(downloadLink);
                 setTimeout(() => URL.revokeObjectURL(dataURL), 1000);
-            }, 'image/jpeg', 0.95);
+            }, 'image/jpeg', 0.98);
         }
 
-        // Sự kiện khi bấm nút Chụp ảnh trực tiếp từ camera
         if (snapBtn && video) {
             snapBtn.addEventListener('click', () => {
                 if (!video.videoWidth) {
@@ -769,17 +744,14 @@
             });
         }
 
-        // Nút nhỏ mở thư viện để đóng dấu ảnh có sẵn
         if (uploadTrigger && fileInput) {
             uploadTrigger.addEventListener('click', () => fileInput.click());
         }
 
-        // Sự kiện xử lý file ảnh khi người dùng chọn Tải ảnh lên từ bộ nhớ máy
         if (fileInput) {
             fileInput.addEventListener('change', (e) => {
                 const file = e.target.files[0];
                 if (!file) return;
-
                 const reader = new FileReader();
                 reader.onload = function(event) {
                     const img = new Image();
